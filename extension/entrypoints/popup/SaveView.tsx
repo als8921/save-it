@@ -1,3 +1,8 @@
+import { Check, FolderPlus, LogOut } from "lucide-react";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { cn } from "../../lib/utils";
 import { supabase } from "../../lib/supabase";
 import {
   PARA_LABELS,
@@ -18,6 +23,12 @@ type ParaTab = ParaCategory | "unassigned";
 const PARA_TABS: { key: ParaTab; label: string }[] = [
   ...PARA_ORDER.map((cat) => ({ key: cat as ParaTab, label: PARA_LABELS[cat] })),
   { key: "unassigned", label: "미지정" },
+];
+
+const PRIORITY_OPTIONS = [
+  { value: 0, label: "보통" },
+  { value: 1, label: "중요" },
+  { value: 2, label: "매우" },
 ];
 
 export function SaveView({
@@ -71,7 +82,11 @@ export function SaveView({
     const para = selectedPara === "unassigned" ? null : selectedPara;
     const { data, error } = await supabase
       .from("folders")
-      .insert({ user_id: userId, name: newFolderName.trim(), para_category: para })
+      .insert({
+        user_id: userId,
+        name: newFolderName.trim(),
+        para_category: para,
+      })
       .select("*")
       .single();
 
@@ -119,107 +134,124 @@ export function SaveView({
   }
 
   return (
-    <form onSubmit={handleSave} style={{ padding: 12, fontSize: 13 }}>
-      <div style={headerRow}>
-        <strong style={{ fontSize: 14 }}>Save It</strong>
-        <button type="button" onClick={handleSignOut} style={linkBtn}>
+    <form onSubmit={handleSave} className="p-4 space-y-3.5">
+      <div className="flex items-center justify-between">
+        <h1 className="text-sm font-semibold tracking-tight">Save It</h1>
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
+          onClick={handleSignOut}
+          className="text-muted-foreground"
+        >
+          <LogOut className="h-3 w-3 mr-1" />
           로그아웃
-        </button>
+        </Button>
       </div>
 
-      <Field label="URL">
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="url">URL</Label>
+        <Input
+          id="url"
           type="url"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           required
-          style={inputStyle}
         />
-      </Field>
+      </div>
 
-      <Field label="제목">
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="title">제목</Label>
+        <Input
+          id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="비워두면 URL이 제목이 됩니다"
-          style={inputStyle}
         />
-      </Field>
+      </div>
 
-      <Field label="설명 (선택)">
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="description">메모</Label>
+        <Input
+          id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="간단한 메모"
-          style={inputStyle}
+          placeholder="간단한 설명 (선택)"
         />
-      </Field>
+      </div>
 
-      <Field label="중요도">
-        <div style={{ display: "flex", gap: 4 }}>
-          {[
-            { value: 0, label: "보통" },
-            { value: 1, label: "중요" },
-            { value: 2, label: "매우" },
-          ].map((opt) => (
-            <button
+      <div className="space-y-1.5">
+        <Label>중요도</Label>
+        <div className="flex gap-1.5">
+          {PRIORITY_OPTIONS.map((opt) => (
+            <Chip
               key={opt.value}
-              type="button"
+              active={priority === opt.value}
               onClick={() => setPriority(opt.value)}
-              style={chip(priority === opt.value)}
             >
               {opt.label}
-            </button>
+            </Chip>
           ))}
         </div>
-      </Field>
+      </div>
 
-      <Field label="카테고리">
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+      <div className="space-y-1.5">
+        <Label>카테고리</Label>
+        <div className="flex flex-wrap gap-1.5">
           {PARA_TABS.map((tab) => (
-            <button
+            <Chip
               key={tab.key}
-              type="button"
+              active={selectedPara === tab.key}
               onClick={() => {
                 setSelectedPara(tab.key);
                 setSelectedFolderId(null);
                 setShowNewFolder(false);
               }}
-              style={chip(selectedPara === tab.key)}
             >
               {tab.label}
-            </button>
+            </Chip>
           ))}
         </div>
-      </Field>
+      </div>
 
-      <Field label="폴더">
+      <div className="space-y-1.5">
+        <Label>폴더</Label>
         {foldersLoading ? (
-          <p style={hint}>불러오는 중...</p>
+          <p className="text-xs text-muted-foreground">불러오는 중...</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div className="rounded-md border bg-card p-1 space-y-0.5 max-h-[140px] overflow-y-auto">
             {filteredFolders.length === 0 && !showNewFolder && (
-              <p style={hint}>이 카테고리에 폴더가 없습니다</p>
+              <p className="px-2 py-1.5 text-xs text-muted-foreground">
+                이 카테고리에 폴더가 없습니다
+              </p>
             )}
             {filteredFolders.map((folder) => (
-              <label key={folder.id} style={folderRow}>
-                <input
-                  type="radio"
-                  name="folder"
-                  checked={selectedFolderId === folder.id}
-                  onChange={() => setSelectedFolderId(folder.id)}
-                />
-                {folder.name}
-              </label>
+              <button
+                key={folder.id}
+                type="button"
+                onClick={() => setSelectedFolderId(folder.id)}
+                className={cn(
+                  "w-full flex items-center justify-between rounded px-2 py-1.5 text-xs text-left transition-colors cursor-pointer",
+                  selectedFolderId === folder.id
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <span className="truncate">{folder.name}</span>
+                {selectedFolderId === folder.id && (
+                  <Check className="h-3 w-3 shrink-0" />
+                )}
+              </button>
             ))}
 
             {showNewFolder ? (
-              <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
-                <input
+              <div className="flex gap-1 px-1 pt-1">
+                <Input
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
                   placeholder="새 폴더 이름"
                   autoFocus
+                  className="h-7 text-xs"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleCreateFolder(e);
                     if (e.key === "Escape") {
@@ -227,149 +259,72 @@ export function SaveView({
                       setNewFolderName("");
                     }
                   }}
-                  style={{ ...inputStyle, flex: 1 }}
                 />
-                <button
+                <Button
                   type="button"
+                  size="xs"
                   onClick={handleCreateFolder}
                   disabled={creatingFolder || !newFolderName.trim()}
-                  style={smallBtn}
                 >
                   {creatingFolder ? "..." : "생성"}
-                </button>
+                </Button>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={() => setShowNewFolder(true)}
-                style={addFolderBtn}
+                className="w-full flex items-center gap-1.5 rounded px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
               >
-                + 새 폴더
+                <FolderPlus className="h-3 w-3" />새 폴더
               </button>
             )}
           </div>
         )}
-      </Field>
+      </div>
 
-      {error && (
-        <p style={{ color: "#dc2626", fontSize: 12, margin: "4px 0" }}>
-          {error}
-        </p>
-      )}
+      {error && <p className="text-xs text-destructive">{error}</p>}
 
-      <button
+      <Button
         type="submit"
         disabled={saving || !selectedFolderId}
-        style={{ ...primaryBtn, marginTop: 8, opacity: saving ? 0.6 : 1 }}
+        className="w-full"
       >
-        {savedFlash ? "저장됨 ✓" : saving ? "저장 중..." : "저장"}
-      </button>
+        {savedFlash ? (
+          <>
+            <Check className="h-4 w-4 mr-1" />
+            저장됨
+          </>
+        ) : saving ? (
+          "저장 중..."
+        ) : (
+          "저장"
+        )}
+      </Button>
     </form>
   );
 }
 
-function Field({
-  label,
+function Chip({
+  active,
+  onClick,
   children,
 }: {
-  label: string;
+  active: boolean;
+  onClick: () => void;
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ marginBottom: 10 }}>
-      <div style={labelStyle}>{label}</div>
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "rounded-md border px-2.5 py-1 text-xs transition-colors cursor-pointer",
+        active
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-input bg-background hover:bg-accent hover:text-accent-foreground"
+      )}
+    >
       {children}
-    </div>
+    </button>
   );
 }
-
-const headerRow: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: 10,
-};
-
-const labelStyle: React.CSSProperties = {
-  fontSize: 11,
-  color: "#666",
-  marginBottom: 4,
-  fontWeight: 500,
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "6px 8px",
-  border: "1px solid #d4d4d8",
-  borderRadius: 4,
-  fontSize: 12,
-  outline: "none",
-  boxSizing: "border-box",
-};
-
-const chip = (active: boolean): React.CSSProperties => ({
-  padding: "4px 8px",
-  border: `1px solid ${active ? "#111827" : "#d4d4d8"}`,
-  background: active ? "#111827" : "white",
-  color: active ? "white" : "#374151",
-  borderRadius: 4,
-  fontSize: 11,
-  cursor: "pointer",
-});
-
-const folderRow: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 6,
-  fontSize: 12,
-  cursor: "pointer",
-};
-
-const addFolderBtn: React.CSSProperties = {
-  padding: "4px 6px",
-  background: "transparent",
-  border: "1px dashed #a1a1aa",
-  borderRadius: 4,
-  color: "#52525b",
-  fontSize: 11,
-  cursor: "pointer",
-  textAlign: "left",
-  marginTop: 2,
-};
-
-const smallBtn: React.CSSProperties = {
-  padding: "0 8px",
-  background: "#111827",
-  color: "white",
-  border: "none",
-  borderRadius: 4,
-  fontSize: 11,
-  cursor: "pointer",
-};
-
-const primaryBtn: React.CSSProperties = {
-  width: "100%",
-  padding: "8px 12px",
-  background: "#111827",
-  color: "white",
-  border: "none",
-  borderRadius: 6,
-  fontSize: 13,
-  fontWeight: 500,
-  cursor: "pointer",
-};
-
-const linkBtn: React.CSSProperties = {
-  background: "none",
-  border: "none",
-  color: "#666",
-  fontSize: 11,
-  cursor: "pointer",
-  padding: 0,
-};
-
-const hint: React.CSSProperties = {
-  fontSize: 11,
-  color: "#888",
-  margin: "2px 0",
-};

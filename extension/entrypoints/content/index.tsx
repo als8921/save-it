@@ -1,3 +1,5 @@
+import "../../lib/styles/globals.css";
+import { Bookmark, X } from "lucide-react";
 import ReactDOM from "react-dom/client";
 import { useAuth } from "../../lib/useAuth";
 import { LoginView } from "../popup/LoginView";
@@ -27,18 +29,18 @@ function FloatingWidget() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div style={wrapperStyle}>
+    <div className="fixed top-5 right-5 font-sans" style={{ zIndex: 2147483647 }}>
       {open ? (
         <FloatingPanel onClose={() => setOpen(false)} />
       ) : (
         <button
           type="button"
           onClick={() => setOpen(true)}
-          style={fabStyle}
           aria-label="Save It"
           title="Save It"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all hover:scale-105 cursor-pointer"
         >
-          +
+          <Bookmark className="h-4 w-4" />
         </button>
       )}
     </div>
@@ -49,19 +51,17 @@ function FloatingPanel({ onClose }: { onClose: () => void }) {
   const auth = useAuth();
 
   return (
-    <div style={panelStyle}>
+    <div className="w-[360px] max-h-[min(85vh,640px)] overflow-y-auto rounded-xl border bg-card text-card-foreground shadow-2xl relative">
       <button
         type="button"
         onClick={onClose}
-        style={closeBtnStyle}
         aria-label="닫기"
+        className="absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
       >
-        ×
+        <X className="h-4 w-4" />
       </button>
       {auth.status === "loading" && (
-        <div style={{ padding: 16, color: "#666", fontSize: 13 }}>
-          불러오는 중...
-        </div>
+        <div className="p-5 text-sm text-muted-foreground">불러오는 중...</div>
       )}
       {auth.status === "anonymous" && <LoginView />}
       {auth.status === "authenticated" && (
@@ -75,57 +75,3 @@ function FloatingPanel({ onClose }: { onClose: () => void }) {
     </div>
   );
 }
-
-const wrapperStyle: React.CSSProperties = {
-  position: "fixed",
-  bottom: 20,
-  right: 20,
-  zIndex: 2147483647,
-  fontFamily: "system-ui, -apple-system, sans-serif",
-};
-
-const fabStyle: React.CSSProperties = {
-  width: 44,
-  height: 44,
-  borderRadius: "50%",
-  background: "#111827",
-  color: "white",
-  border: "none",
-  fontSize: 22,
-  fontWeight: 300,
-  cursor: "pointer",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  lineHeight: 1,
-  padding: 0,
-};
-
-const panelStyle: React.CSSProperties = {
-  width: 360,
-  maxHeight: "min(80vh, 600px)",
-  overflowY: "auto",
-  background: "white",
-  borderRadius: 8,
-  boxShadow: "0 10px 32px rgba(0,0,0,0.18)",
-  border: "1px solid #e5e7eb",
-  position: "relative",
-  color: "#111827",
-};
-
-const closeBtnStyle: React.CSSProperties = {
-  position: "absolute",
-  top: 8,
-  right: 8,
-  width: 24,
-  height: 24,
-  border: "none",
-  background: "transparent",
-  fontSize: 20,
-  color: "#9ca3af",
-  cursor: "pointer",
-  lineHeight: 1,
-  padding: 0,
-  zIndex: 1,
-};

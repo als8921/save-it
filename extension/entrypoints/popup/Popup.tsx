@@ -14,13 +14,9 @@ export default function Popup() {
   }, []);
 
   return (
-    <div
-      style={{ width: 360, fontFamily: "system-ui, -apple-system, sans-serif" }}
-    >
+    <div className="w-[360px] bg-background text-foreground">
       {(auth.status === "loading" || tab === null) && (
-        <div style={{ padding: 16, color: "#666", fontSize: 13 }}>
-          불러오는 중...
-        </div>
+        <div className="p-4 text-sm text-muted-foreground">불러오는 중...</div>
       )}
       {auth.status === "anonymous" && tab !== null && <LoginView />}
       {auth.status === "authenticated" && tab !== null && (

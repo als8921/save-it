@@ -1,3 +1,7 @@
+import { Bookmark } from "lucide-react";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import { supabase } from "../../lib/supabase";
 
 export function LoginView() {
@@ -26,61 +30,55 @@ export function LoginView() {
   }
 
   return (
-    <div style={{ padding: 16 }}>
-      <h1 style={{ fontSize: 18, fontWeight: 600, marginBottom: 12 }}>
-        Save It 로그인
-      </h1>
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: "flex", flexDirection: "column", gap: 8 }}
-      >
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="이메일"
-          required
-          autoFocus
-          style={inputStyle}
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="비밀번호"
-          required
-          style={inputStyle}
-        />
-        {error && (
-          <p style={{ color: "#dc2626", fontSize: 12, margin: 0 }}>{error}</p>
-        )}
-        <button type="submit" disabled={loading} style={primaryBtn}>
+    <div className="p-5 space-y-4">
+      <div className="flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+          <Bookmark className="h-4 w-4" />
+        </div>
+        <div>
+          <h1 className="text-base font-semibold leading-none">Save It</h1>
+          <p className="text-xs text-muted-foreground mt-1">
+            로그인 후 링크를 저장하세요
+          </p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="email">이메일</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+            autoFocus
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="password">비밀번호</Label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            required
+          />
+        </div>
+
+        {error && <p className="text-xs text-destructive">{error}</p>}
+
+        <Button type="submit" disabled={loading} className="w-full">
           {loading ? "로그인 중..." : "로그인"}
-        </button>
+        </Button>
       </form>
-      <p style={{ fontSize: 11, color: "#888", marginTop: 12 }}>
-        계정이 없다면 save-it 웹사이트에서 가입 후 이용하세요.
+
+      <p className="text-[11px] text-muted-foreground">
+        계정이 없으면 save-it 웹사이트에서 가입해주세요.
       </p>
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  padding: "8px 10px",
-  border: "1px solid #d4d4d8",
-  borderRadius: 6,
-  fontSize: 13,
-  outline: "none",
-};
-
-const primaryBtn: React.CSSProperties = {
-  padding: "8px 12px",
-  background: "#111827",
-  color: "white",
-  border: "none",
-  borderRadius: 6,
-  fontSize: 13,
-  fontWeight: 500,
-  cursor: "pointer",
-  marginTop: 4,
-};
