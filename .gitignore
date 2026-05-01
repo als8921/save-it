@@ -1,11 +1,43 @@
+# dependencies
 node_modules/
+
+# next.js
 .next/
+next-env.d.ts
+
+# wxt / extension build
 .output/
 .wxt/
+*.zip
+
+# turbo
 .turbo/
+
+# vercel
+.vercel/
+
+# typescript incremental build
+*.tsbuildinfo
+
+# env
 .env
 .env.local
 .env.*.local
+
+# supabase cli
+**/supabase/.temp/
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# coverage
+coverage/
+
+# os / editor
 .DS_Store
 *.swp
 *.swo
