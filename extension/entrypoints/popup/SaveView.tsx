@@ -1,4 +1,4 @@
-import { Check, FolderPlus, LogOut } from "lucide-react";
+import { Check, FolderPlus } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -133,26 +133,8 @@ export function SaveView({
     setTimeout(() => onSaved(), 600);
   }
 
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-  }
-
   return (
     <form onSubmit={handleSave} className="p-4 space-y-3.5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-sm font-semibold tracking-tight">Save It</h1>
-        <Button
-          type="button"
-          variant="ghost"
-          size="xs"
-          onClick={handleSignOut}
-          className="text-muted-foreground"
-        >
-          <LogOut className="h-3 w-3 mr-1" />
-          로그아웃
-        </Button>
-      </div>
-
       <div className="space-y-1.5">
         <Label htmlFor="url">URL</Label>
         <Input
@@ -325,7 +307,7 @@ function Chip({
         "rounded-md border px-2.5 py-1 text-xs transition-colors cursor-pointer",
         active
           ? "border-primary bg-primary text-primary-foreground"
-          : "border-input bg-background hover:bg-accent hover:text-accent-foreground"
+          : "border-input bg-secondary text-secondary-foreground hover:bg-accent"
       )}
     >
       {children}

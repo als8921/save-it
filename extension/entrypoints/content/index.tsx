@@ -2,8 +2,8 @@ import "../../lib/styles/globals.css";
 import { Bookmark, X } from "lucide-react";
 import ReactDOM from "react-dom/client";
 import { useAuth } from "../../lib/useAuth";
+import { AppShell } from "../popup/AppShell";
 import { LoginView } from "../popup/LoginView";
-import { SaveView } from "../popup/SaveView";
 
 export default defineContentScript({
   matches: ["<all_urls>"],
@@ -51,25 +51,42 @@ function FloatingPanel({ onClose }: { onClose: () => void }) {
   const auth = useAuth();
 
   return (
-    <div className="w-[360px] rounded-xl border bg-card text-card-foreground shadow-2xl relative">
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="닫기"
-        className="absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
-      >
-        <X className="h-4 w-4" />
-      </button>
+    <div className="w-[360px] rounded-xl border bg-card text-card-foreground shadow-2xl">
       {auth.status === "loading" && (
-        <div className="p-5 text-sm text-muted-foreground">불러오는 중...</div>
+        <div className="flex items-center justify-between border-b px-3 py-2">
+          <span className="text-xs font-semibold">Save It</span>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="닫기"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       )}
-      {auth.status === "anonymous" && <LoginView />}
+      {auth.status === "anonymous" && (
+        <div>
+          <div className="flex justify-end border-b px-2 py-1.5">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="닫기"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <LoginView />
+        </div>
+      )}
       {auth.status === "authenticated" && (
-        <SaveView
+        <AppShell
           userId={auth.session.user.id}
           initialUrl={location.href}
           initialTitle={document.title}
           onSaved={onClose}
+          onClose={onClose}
         />
       )}
     </div>

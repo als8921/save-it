@@ -1,6 +1,6 @@
 import { useAuth } from "../../lib/useAuth";
+import { AppShell } from "./AppShell";
 import { LoginView } from "./LoginView";
-import { SaveView } from "./SaveView";
 
 export default function Popup() {
   const auth = useAuth();
@@ -20,7 +20,7 @@ export default function Popup() {
       )}
       {auth.status === "anonymous" && tab !== null && <LoginView />}
       {auth.status === "authenticated" && tab !== null && (
-        <SaveView
+        <AppShell
           userId={auth.session.user.id}
           initialUrl={tab.url}
           initialTitle={tab.title}
