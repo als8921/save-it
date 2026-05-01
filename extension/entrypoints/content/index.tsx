@@ -51,7 +51,14 @@ function FloatingPanel({ onClose }: { onClose: () => void }) {
   const auth = useAuth();
 
   return (
-    <div className="w-[360px] rounded-xl border bg-card text-card-foreground shadow-2xl">
+    <div
+      className="w-[360px] rounded-xl bg-card text-card-foreground"
+      style={{
+        border: "1px solid rgba(0,0,0,0.08)",
+        boxShadow:
+          "0 16px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)",
+      }}
+    >
       {auth.status === "loading" && (
         <div className="flex items-center justify-between border-b px-3 py-2">
           <span className="text-xs font-semibold">Save It</span>
