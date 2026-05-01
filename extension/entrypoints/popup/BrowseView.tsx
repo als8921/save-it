@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { supabase } from "../../lib/supabase";
+import { useSyncedState } from "../../lib/useSyncedState";
 import {
   PARA_LABELS,
   PARA_ORDER,
@@ -26,8 +27,15 @@ export function BrowseView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [filter, setFilter] = useState<ParaFilter | null>(null);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [filter, setFilter] = useSyncedState<ParaFilter | null>(
+    "saveit_browse_filter",
+    null
+  );
+  const [expandedIds, setExpandedIds] = useSyncedState<string[]>(
+    "saveit_expanded_folders",
+    []
+  );
+  const expanded = useMemo(() => new Set(expandedIds), [expandedIds]);
 
   useEffect(() => {
     Promise.all([
@@ -55,12 +63,9 @@ export function BrowseView() {
   });
 
   function toggleFolder(id: string) {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    setExpandedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
   }
 
   function openLink(url: string) {
