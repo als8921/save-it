@@ -92,7 +92,11 @@ export function SaveView({
 
     setCreatingFolder(false);
     if (error) {
-      setError(error.message);
+      setError(
+        error.code === "23505"
+          ? "이미 같은 이름의 폴더가 있어요"
+          : error.message
+      );
       return;
     }
     const created = data as Folder;

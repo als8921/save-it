@@ -41,14 +41,18 @@ export default function NewFolderPage() {
       .from("folders")
       .insert({
         user_id: user.id,
-        name,
+        name: name.trim(),
         para_category: category,
       })
       .select("id")
       .single();
 
     if (error) {
-      setError(error.message);
+      setError(
+        error.code === "23505"
+          ? "이미 같은 이름의 폴더가 있어요"
+          : error.message
+      );
       setLoading(false);
       return;
     }
