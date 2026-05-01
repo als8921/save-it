@@ -51,7 +51,7 @@ function FloatingPanel({ onClose }: { onClose: () => void }) {
   const auth = useAuth();
 
   return (
-    <div className="w-[360px] max-h-[min(85vh,640px)] overflow-y-auto rounded-xl border bg-card text-card-foreground shadow-2xl relative">
+    <div className="w-[360px] rounded-xl border bg-card text-card-foreground shadow-2xl relative">
       <button
         type="button"
         onClick={onClose}
