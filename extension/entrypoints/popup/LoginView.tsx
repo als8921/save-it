@@ -1,4 +1,4 @@
-import { Bookmark } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -30,20 +30,34 @@ export function LoginView() {
   }
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="px-6 pt-6 pb-7 space-y-6">
+      <header className="space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="eyebrow">save · it</span>
+          <span className="grow leader-dot h-px" />
+          <span className="font-mono text-[10px] text-muted-foreground">N°01</span>
+        </div>
+        <h1
+          className="font-serif text-[26px] leading-[1.05] tracking-tight"
+          style={{ fontVariationSettings: "'opsz' 144" }}
+        >
+          읽고, 저장하고,
+          <br />
+          <em
+            className="italic"
+            style={{ fontVariationSettings: "'opsz' 144" }}
+          >
+            다시 펼쳐 보세요.
+          </em>
+        </h1>
+      </header>
+
       <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-          <Bookmark className="h-4 w-4" />
-        </div>
-        <div>
-          <h1 className="text-base font-semibold leading-none">Save It</h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            로그인 후 링크를 저장하세요
-          </p>
-        </div>
+        <span className="eyebrow">로그인</span>
+        <span className="grow border-t" />
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="email">이메일</Label>
           <Input
@@ -69,16 +83,27 @@ export function LoginView() {
           />
         </div>
 
-        {error && <p className="text-xs text-destructive">{error}</p>}
+        {error && (
+          <p className="text-xs text-destructive border-l-2 border-destructive pl-2">
+            {error}
+          </p>
+        )}
 
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "로그인 중..." : "로그인"}
+        <Button type="submit" disabled={loading} className="w-full gap-2 group">
+          {loading ? "로그인 중…" : "로그인"}
+          {!loading && (
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          )}
         </Button>
       </form>
 
-      <p className="text-[11px] text-muted-foreground">
-        계정이 없으면 save-it 웹사이트에서 가입해주세요.
-      </p>
+      <div className="flex items-baseline gap-2 pt-1">
+        <span className="font-mono text-[10px] text-muted-foreground">→</span>
+        <p className="text-[11px] text-muted-foreground leading-snug">
+          계정이 없다면 <span className="text-foreground/85">save-it</span>{" "}
+          웹사이트에서 가입해 주세요.
+        </p>
+      </div>
     </div>
   );
 }

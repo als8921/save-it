@@ -1,3 +1,6 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
+
 @import "tailwindcss";
 
 @theme inline {
@@ -20,45 +23,67 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-rule: var(--rule);
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: calc(var(--radius) - 1px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Geist", "Pretendard Variable", "Pretendard", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Fraunces", "Pretendard Variable", "Pretendard", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --animate-fade-up: saveit-fade-up 360ms cubic-bezier(0.2, 0.75, 0.1, 1) both;
 }
 
 :root,
 :host {
-  /* 호스트 페이지의 html font-size에 영향받지 않도록 rem 기반 스케일을 px로 고정 */
+  /* 호스트 페이지 html font-size에 영향받지 않도록 px 고정 */
   --spacing: 4px;
-  --text-xs: 12px;
+  --text-xs: 11px;
   --text-xs--line-height: 16px;
-  --text-sm: 14px;
-  --text-sm--line-height: 20px;
-  --text-base: 16px;
-  --text-base--line-height: 24px;
-  --radius: 8px;
+  --text-sm: 13px;
+  --text-sm--line-height: 19px;
+  --text-base: 15px;
+  --text-base--line-height: 22px;
+  --text-lg: 17px;
+  --text-lg--line-height: 24px;
+  --text-xl: 20px;
+  --text-xl--line-height: 26px;
+  --text-2xl: 26px;
+  --text-2xl--line-height: 30px;
+  --radius: 6px;
 
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --radius: 0.5rem;
+  /* Editorial palette: warm paper / deep ink / oxblood */
+  --paper: oklch(0.985 0.012 85);
+  --ink: oklch(0.2 0.018 270);
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: oklch(0.995 0.006 85);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+
+  --primary: oklch(0.4 0.13 25);
+  --primary-foreground: oklch(0.985 0.012 85);
+
+  --secondary: oklch(0.95 0.012 85);
+  --secondary-foreground: var(--ink);
+
+  --muted: oklch(0.94 0.012 85);
+  --muted-foreground: oklch(0.46 0.018 270);
+
+  --accent: oklch(0.93 0.028 75);
+  --accent-foreground: var(--ink);
+
+  --destructive: oklch(0.5 0.2 25);
+  --destructive-foreground: oklch(0.985 0.01 85);
+
+  --rule: oklch(0.86 0.012 85);
+  --border: var(--rule);
+  --input: oklch(0.84 0.012 85);
+  --ring: oklch(0.4 0.13 25);
 }
 
 @layer base {
@@ -69,5 +94,43 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-feature-settings: "ss03", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
+}
+
+@keyframes saveit-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+@utility paper-grain {
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(ellipse 90% 60% at 12% -10%, oklch(0.97 0.04 75 / 0.5), transparent 60%),
+    radial-gradient(ellipse 70% 55% at 110% 110%, oklch(0.9 0.07 25 / 0.16), transparent 65%);
+}
+
+@utility leader-dot {
+  background-image: radial-gradient(circle, var(--rule) 1px, transparent 1px);
+  background-size: 4px 100%;
+  background-repeat: repeat-x;
+  background-position: left 60%;
 }

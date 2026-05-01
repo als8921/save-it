@@ -14,9 +14,12 @@ export default function Popup() {
   }, []);
 
   return (
-    <div className="w-[360px] bg-background text-foreground">
+    <div className="paper-grain w-[360px] text-foreground animate-fade-up">
       {(auth.status === "loading" || tab === null) && (
-        <div className="p-4 text-sm text-muted-foreground">불러오는 중...</div>
+        <div className="flex items-center gap-2 p-5">
+          <span className="eyebrow">loading</span>
+          <span className="grow leader-dot h-px" />
+        </div>
       )}
       {auth.status === "anonymous" && tab !== null && <LoginView />}
       {auth.status === "authenticated" && tab !== null && (

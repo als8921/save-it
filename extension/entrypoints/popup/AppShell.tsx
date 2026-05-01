@@ -28,16 +28,23 @@ export function AppShell({
   }
 
   return (
-    <div>
+    <div className="flex flex-col">
       {mode === "browse" ? (
-        <header className="flex items-center justify-end gap-1 border-b px-2.5 py-2">
+        <header className="flex items-center gap-3 border-b px-4 py-2.5">
+          <span
+            className="font-serif text-[17px] leading-none tracking-tight"
+            style={{ fontVariationSettings: "'opsz' 144" }}
+          >
+            Save<em className="italic">·</em>It
+          </span>
+          <span className="eyebrow ml-auto">index</span>
           <Button
             type="button"
-            size="sm"
+            size="xs"
             onClick={() => setMode("add")}
-            className="h-8 gap-1 px-3 shadow-sm"
+            className="h-7 gap-1 px-2.5"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-3 w-3" />
             추가
           </Button>
           {onClose && (
@@ -47,15 +54,15 @@ export function AppShell({
               size="icon"
               onClick={onClose}
               aria-label="닫기"
-              className="h-8 w-8 text-muted-foreground"
+              className="h-7 w-7 text-muted-foreground"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </Button>
           )}
         </header>
       ) : (
-        <header className="flex items-center justify-between gap-2 border-b px-2 py-2">
-          <div className="flex items-center gap-1 min-w-0">
+        <header className="flex items-center justify-between gap-2 border-b px-2 py-2.5">
+          <div className="flex items-center gap-2 min-w-0">
             <Button
               type="button"
               variant="ghost"
@@ -66,7 +73,10 @@ export function AppShell({
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-sm font-semibold truncate">링크 추가</span>
+            <span className="eyebrow">새 항목</span>
+            <span className="font-serif italic text-[15px] leading-none tracking-tight">
+              추가
+            </span>
           </div>
           {onClose && (
             <Button
@@ -77,7 +87,7 @@ export function AppShell({
               aria-label="닫기"
               className="h-7 w-7 shrink-0 text-muted-foreground"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </Button>
           )}
         </header>
@@ -94,14 +104,16 @@ export function AppShell({
         <BrowseView />
       )}
 
-      <footer className="flex justify-end border-t px-3 py-2">
+      <footer className="flex items-center gap-2 border-t px-4 py-2">
+        <span className="eyebrow">session</span>
+        <span className="grow leader-dot h-px" />
         <button
           type="button"
           onClick={handleSignOut}
-          className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          className="flex items-center gap-1 text-[10px] uppercase tracking-[0.16em] font-mono text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
+          logout
           <LogOut className="h-3 w-3" />
-          로그아웃
         </button>
       </footer>
     </div>

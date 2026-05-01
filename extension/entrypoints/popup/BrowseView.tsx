@@ -11,13 +11,13 @@ import {
 
 type ParaFilter = ParaCategory | "unassigned";
 
-const FILTER_OPTIONS: { key: ParaFilter; label: string; short: string }[] = [
+const FILTER_OPTIONS: { key: ParaFilter; label: string; letter: string }[] = [
   ...PARA_ORDER.map((cat) => ({
     key: cat as ParaFilter,
     label: PARA_LABELS[cat],
-    short: PARA_LABELS[cat][0],
+    letter: PARA_LABELS[cat][0],
   })),
-  { key: "unassigned", label: "미지정", short: "미" },
+  { key: "unassigned", label: "미지정", letter: "U" },
 ];
 
 export function BrowseView() {
@@ -77,88 +77,123 @@ export function BrowseView() {
   }
 
   return (
-    <div className="p-4 space-y-3">
-      <div className="flex gap-2">
-        {FILTER_OPTIONS.map((opt) => (
-          <button
-            key={opt.key}
-            type="button"
-            onClick={() => setFilter(filter === opt.key ? null : opt.key)}
-            title={opt.label}
-            className={cn(
-              "h-10 w-10 rounded-full border text-sm font-semibold transition-colors cursor-pointer",
-              filter === opt.key
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-input bg-secondary text-secondary-foreground hover:bg-accent"
-            )}
-          >
-            {opt.short}
-          </button>
-        ))}
+    <div className="px-4 py-4 space-y-4">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="eyebrow">filter</span>
+          <span className="grow leader-dot h-px" />
+          <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+            {visibleFolders.length} / {folders.length}
+          </span>
+        </div>
+        <div className="grid grid-cols-5 gap-1">
+          {FILTER_OPTIONS.map((opt) => {
+            const active = filter === opt.key;
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setFilter(active ? null : opt.key)}
+                title={opt.label}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-0.5 rounded-md border py-1.5 transition-colors cursor-pointer",
+                  active
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-rule bg-card hover:bg-accent"
+                )}
+              >
+                <span
+                  className="font-serif text-[18px] font-bold leading-none"
+                  style={{ fontVariationSettings: "'opsz' 144" }}
+                >
+                  {opt.letter}
+                </span>
+                <span
+                  className={cn(
+                    "text-[9px] leading-none tracking-tight",
+                    active ? "text-primary-foreground/85" : "text-muted-foreground"
+                  )}
+                >
+                  {opt.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {loading && (
-        <p className="text-xs text-muted-foreground py-4 text-center">
-          불러오는 중...
+        <div className="flex items-center gap-2 py-4">
+          <span className="eyebrow">loading</span>
+          <span className="grow leader-dot h-px" />
+        </div>
+      )}
+
+      {error && (
+        <p className="text-xs text-destructive border-l-2 border-destructive pl-2">
+          {error}
         </p>
       )}
 
-      {error && <p className="text-xs text-destructive">{error}</p>}
-
       {!loading && !error && (
-        <div className="space-y-1">
+        <div>
           {visibleFolders.length === 0 ? (
-            <p className="text-xs text-muted-foreground py-4 text-center">
+            <p className="text-xs text-muted-foreground italic py-6 text-center">
               폴더가 없어요
             </p>
           ) : (
-            visibleFolders.map((folder) => {
-              const folderLinks = links.filter(
-                (l) => l.folder_id === folder.id
-              );
-              const isOpen = expanded.has(folder.id);
-              return (
-                <div key={folder.id}>
-                  <button
-                    type="button"
-                    onClick={() => toggleFolder(folder.id)}
-                    className="w-full flex items-center justify-between rounded px-2 py-1.5 text-xs hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
-                  >
-                    <span className="flex items-center gap-1.5 min-w-0">
+            <ul className="space-y-px">
+              {visibleFolders.map((folder, idx) => {
+                const folderLinks = links.filter(
+                  (l) => l.folder_id === folder.id
+                );
+                const isOpen = expanded.has(folder.id);
+                return (
+                  <li key={folder.id}>
+                    <button
+                      type="button"
+                      onClick={() => toggleFolder(folder.id)}
+                      className="group w-full flex items-baseline gap-2 rounded px-1.5 py-1.5 text-xs hover:bg-accent transition-colors cursor-pointer"
+                    >
+                      <span className="font-mono text-[10px] tabular-nums text-muted-foreground shrink-0">
+                        {String(idx + 1).padStart(2, "0")}
+                      </span>
                       {isOpen ? (
-                        <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
+                        <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground self-center" />
                       ) : (
-                        <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+                        <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground self-center" />
                       )}
                       <span className="truncate font-medium">
                         {folder.name}
                       </span>
-                    </span>
-                    <span className="text-[10px] text-muted-foreground ml-2 shrink-0">
-                      {folderLinks.length}
-                    </span>
-                  </button>
-                  {isOpen && (
-                    <div className="ml-4 space-y-0.5 mt-0.5 mb-1">
-                      {folderLinks.length === 0 ? (
-                        <p className="text-[11px] text-muted-foreground px-2 py-1">
-                          비어있음
-                        </p>
-                      ) : (
-                        folderLinks.map((link) => (
-                          <LinkRow
-                            key={link.id}
-                            title={link.title}
-                            host={host(link.url)}
-                            onClick={() => openLink(link.url)}
-                          />
-                        ))
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })
+                      <span className="grow leader-dot h-px self-center" />
+                      <span className="font-mono text-[10px] tabular-nums text-muted-foreground shrink-0">
+                        {folderLinks.length}
+                      </span>
+                    </button>
+                    {isOpen && (
+                      <div className="ml-7 mr-1 mb-1 space-y-px">
+                        {folderLinks.length === 0 ? (
+                          <p className="text-[11px] italic text-muted-foreground px-2 py-1">
+                            비어있음
+                          </p>
+                        ) : (
+                          folderLinks.map((link, i) => (
+                            <LinkRow
+                              key={link.id}
+                              index={i + 1}
+                              title={link.title}
+                              host={host(link.url)}
+                              onClick={() => openLink(link.url)}
+                            />
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
       )}
@@ -167,10 +202,12 @@ export function BrowseView() {
 }
 
 function LinkRow({
+  index,
   title,
   host,
   onClick,
 }: {
+  index: number;
   title: string;
   host: string;
   onClick: () => void;
@@ -179,17 +216,20 @@ function LinkRow({
     <button
       type="button"
       onClick={onClick}
-      className="group w-full flex items-center justify-between gap-2 rounded px-2 py-1.5 text-left hover:bg-accent transition-colors cursor-pointer"
+      className="group w-full flex items-baseline gap-2 rounded px-2 py-1.5 text-left hover:bg-accent transition-colors cursor-pointer"
     >
+      <span className="font-mono text-[10px] tabular-nums text-muted-foreground shrink-0 self-center">
+        {String(index).padStart(2, "0")}
+      </span>
       <div className="min-w-0 flex-1">
         <div className="text-xs truncate">{title}</div>
         {host && (
-          <div className="text-[10px] text-muted-foreground truncate">
+          <div className="font-mono text-[10px] text-muted-foreground truncate">
             {host}
           </div>
         )}
       </div>
-      <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity self-center" />
     </button>
   );
 }

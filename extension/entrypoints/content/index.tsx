@@ -38,9 +38,18 @@ function FloatingWidget() {
           onClick={() => setOpen(true)}
           aria-label="Save It"
           title="Save It"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all hover:scale-105 cursor-pointer"
+          className="group flex h-10 items-center gap-1.5 rounded-full border border-rule bg-card pl-2.5 pr-3 text-foreground transition-all hover:bg-accent cursor-pointer"
+          style={{
+            boxShadow:
+              "0 12px 28px rgba(60, 30, 20, 0.12), 0 2px 6px rgba(60, 30, 20, 0.05)",
+          }}
         >
-          <Bookmark className="h-4 w-4" />
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Bookmark className="h-2.5 w-2.5" />
+          </span>
+          <span className="font-mono text-[10px] tracking-[0.18em] uppercase">
+            save
+          </span>
         </button>
       )}
     </div>
@@ -52,23 +61,30 @@ function FloatingPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="w-[360px] rounded-xl bg-card text-card-foreground"
+      className="paper-grain w-[360px] rounded-xl text-foreground animate-fade-up overflow-hidden"
       style={{
-        border: "1px solid rgba(0,0,0,0.08)",
+        border: "1px solid oklch(0.84 0.012 85)",
         boxShadow:
-          "0 16px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)",
+          "0 24px 60px rgba(60, 30, 20, 0.16), 0 6px 18px rgba(60, 30, 20, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6)",
       }}
     >
       {auth.status === "loading" && (
-        <div className="flex items-center justify-between border-b px-3 py-2">
-          <span className="text-xs font-semibold">Save It</span>
+        <div className="flex items-center gap-2 px-4 py-3 border-b">
+          <span
+            className="font-serif text-[15px] leading-none tracking-tight"
+            style={{ fontVariationSettings: "'opsz' 144" }}
+          >
+            Save<em className="italic">·</em>It
+          </span>
+          <span className="grow leader-dot h-px" />
+          <span className="eyebrow">loading</span>
           <button
             type="button"
             onClick={onClose}
             aria-label="닫기"
-            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </button>
         </div>
       )}
@@ -79,9 +95,9 @@ function FloatingPanel({ onClose }: { onClose: () => void }) {
               type="button"
               onClick={onClose}
               aria-label="닫기"
-              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </button>
           </div>
           <LoginView />
