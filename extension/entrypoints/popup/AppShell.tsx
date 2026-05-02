@@ -22,6 +22,17 @@ export function AppShell({
   onClose,
 }: AppShellProps) {
   const [mode, setMode] = useState<Mode>("browse");
+  const [pendingFolderId, setPendingFolderId] = useState<string | null>(null);
+
+  function goToAdd(folderId: string | null = null) {
+    setPendingFolderId(folderId);
+    setMode("add");
+  }
+
+  function goToBrowse() {
+    setPendingFolderId(null);
+    setMode("browse");
+  }
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -41,7 +52,7 @@ export function AppShell({
           <Button
             type="button"
             size="xs"
-            onClick={() => setMode("add")}
+            onClick={() => goToAdd(null)}
             className="h-7 gap-1 px-2.5"
           >
             <Plus className="h-3 w-3" />
@@ -67,7 +78,7 @@ export function AppShell({
               type="button"
               variant="ghost"
               size="icon"
-              onClick={() => setMode("browse")}
+              onClick={goToBrowse}
               aria-label="뒤로"
               className="h-7 w-7 shrink-0"
             >
@@ -98,10 +109,11 @@ export function AppShell({
           userId={userId}
           initialUrl={initialUrl}
           initialTitle={initialTitle}
+          initialFolderId={pendingFolderId}
           onSaved={onSaved}
         />
       ) : (
-        <BrowseView />
+        <BrowseView userId={userId} onAddLinkToFolder={goToAdd} />
       )}
 
       <footer className="flex items-center gap-2 border-t px-4 py-2">

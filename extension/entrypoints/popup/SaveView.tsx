@@ -15,6 +15,7 @@ interface SaveViewProps {
   userId: string;
   initialUrl: string;
   initialTitle: string;
+  initialFolderId?: string | null;
   onSaved: () => void;
 }
 
@@ -39,6 +40,7 @@ export function SaveView({
   userId,
   initialUrl,
   initialTitle,
+  initialFolderId,
   onSaved,
 }: SaveViewProps) {
   const [url, setUrl] = useState(initialUrl);
@@ -65,8 +67,19 @@ export function SaveView({
       .select("*")
       .order("created_at", { ascending: true })
       .then(({ data, error }) => {
-        if (error) setError(error.message);
-        else setFolders((data ?? []) as Folder[]);
+        if (error) {
+          setError(error.message);
+        } else {
+          const list = (data ?? []) as Folder[];
+          setFolders(list);
+          if (initialFolderId) {
+            const target = list.find((f) => f.id === initialFolderId);
+            if (target) {
+              setSelectedFolderId(target.id);
+              setSelectedPara(target.para_category ?? "unassigned");
+            }
+          }
+        }
         setFoldersLoading(false);
       });
   }, []);
@@ -197,7 +210,7 @@ export function SaveView({
                 setSelectedFolderId(null);
                 setShowNewFolder(false);
               }}
-              letter={tab.letter}
+              letter={tab.key === "unassigned" ? undefined : tab.letter}
             >
               {tab.label}
             </Chip>
@@ -347,7 +360,7 @@ function Chip({
 }: {
   active: boolean;
   onClick: () => void;
-  letter: string;
+  letter?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -355,18 +368,21 @@ function Chip({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-baseline gap-1.5 rounded-full border pl-2.5 pr-3 py-1 transition-colors cursor-pointer",
+        "inline-flex items-baseline gap-1.5 rounded-full border py-1 transition-colors cursor-pointer",
+        letter ? "pl-2.5 pr-3" : "px-3",
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-rule bg-card hover:bg-accent"
       )}
     >
-      <span
-        className="font-serif text-[13px] font-bold leading-none"
-        style={{ fontVariationSettings: "'opsz' 144" }}
-      >
-        {letter}
-      </span>
+      {letter && (
+        <span
+          className="font-serif text-[13px] font-black leading-none"
+          style={{ fontVariationSettings: "'opsz' 144" }}
+        >
+          {letter}
+        </span>
+      )}
       <span
         className={cn(
           "text-[10px] leading-none tracking-tight",
