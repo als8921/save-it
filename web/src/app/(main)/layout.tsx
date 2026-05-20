@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Sidebar } from "@/components/sidebar";
+import { createClient } from "@/lib/supabase/server";
+import { BottomNav } from "@/components/shell/bottom-nav";
 
 export default async function MainLayout({
   children,
@@ -12,19 +12,19 @@ export default async function MainLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: folders } = await supabase
-    .from("folders")
-    .select("*")
-    .order("created_at", { ascending: true });
+  if (!user) redirect("/login");
 
   return (
-    <div className="flex h-full">
-      <Sidebar folders={folders ?? []} userEmail={user.email ?? ""} />
-      <main className="flex-1 overflow-auto">{children}</main>
+    <div className="relative mx-auto flex min-h-svh w-full max-w-md flex-col">
+      <main
+        className="flex-1"
+        style={{
+          paddingBottom: `calc(env(safe-area-inset-bottom) + 64px)`,
+        }}
+      >
+        {children}
+      </main>
+      <BottomNav />
     </div>
   );
 }
