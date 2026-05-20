@@ -1,24 +1,56 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { AppHeader } from "@/components/shell/app-header";
+import { ParaCard } from "@/components/library/para-card";
+import { UnassignedCard } from "@/components/library/unassigned-card";
+import { PARA_ORDER } from "@/lib/para";
+import type { Folder } from "@/lib/types";
 
-export default async function Home() {
+export default async function LibraryHome() {
   const supabase = await createClient();
 
-  // 미지정 폴더로 리다이렉트
-  const { data: defaultFolder } = await supabase
-    .from("folders")
-    .select("id")
-    .is("para_category", null)
-    .limit(1)
-    .single();
+  const [{ data: folders }, { data: links }] = await Promise.all([
+    supabase.from("folders").select("*"),
+    supabase.from("links").select("folder_id"),
+  ]);
 
-  if (defaultFolder) {
-    redirect(`/folder/${defaultFolder.id}`);
+  const folderList = (folders ?? []) as Folder[];
+  const linkList = (links ?? []) as { folder_id: string }[];
+
+  const folderToCategory = new Map(
+    folderList.map((f) => [f.id, f.para_category])
+  );
+  const linkCountByCategory = new Map<string, number>();
+  for (const l of linkList) {
+    const cat = folderToCategory.get(l.folder_id);
+    const key = cat ?? "unassigned";
+    linkCountByCategory.set(key, (linkCountByCategory.get(key) ?? 0) + 1);
+  }
+
+  const folderCountByCategory = new Map<string, number>();
+  for (const f of folderList) {
+    const key = f.para_category ?? "unassigned";
+    folderCountByCategory.set(key, (folderCountByCategory.get(key) ?? 0) + 1);
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center">
-      <p className="text-muted-foreground">폴더를 선택하세요</p>
-    </div>
+    <>
+      <AppHeader title="라이브러리" />
+      <div className="p-4 space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          {PARA_ORDER.map((category) => (
+            <ParaCard
+              key={category}
+              category={category}
+              folderCount={folderCountByCategory.get(category) ?? 0}
+              linkCount={linkCountByCategory.get(category) ?? 0}
+            />
+          ))}
+        </div>
+        <UnassignedCard
+          folderCount={folderCountByCategory.get("unassigned") ?? 0}
+          linkCount={linkCountByCategory.get("unassigned") ?? 0}
+        />
+      </div>
+    </>
   );
 }

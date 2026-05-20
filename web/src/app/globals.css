@@ -46,6 +46,22 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* PARA palette */
+  --color-para-project-fg: #2563eb;
+  --color-para-project-bg: #eff6ff;
+  --color-para-area-fg: #f59e0b;
+  --color-para-area-bg: #fef3c7;
+  --color-para-resource-fg: #ec4899;
+  --color-para-resource-bg: #fce7f3;
+  --color-para-archive-fg: #737373;
+  --color-para-archive-bg: #f5f5f5;
+  --color-para-unassigned-fg: #6b7280;
+  --color-para-unassigned-bg: #f9fafb;
+
+  /* Safe-area inset */
+  --spacing-safe-bottom: env(safe-area-inset-bottom);
+  --spacing-safe-top: env(safe-area-inset-top);
 }
 
 :root {
