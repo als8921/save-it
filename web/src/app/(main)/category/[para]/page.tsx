@@ -2,14 +2,14 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/shell/app-header";
 import { BackButton } from "@/components/shell/back-button";
-import { FolderCard } from "@/components/library/folder-card";
+import { FolderAccordionItem } from "@/components/library/folder-accordion-item";
 import { AddFolderModal } from "@/components/actions/add-folder-modal";
 import {
   PARA_TOKENS,
   UNASSIGNED_TOKEN,
   isValidParaParam,
 } from "@/lib/para";
-import type { Folder } from "@/lib/types";
+import type { Folder, Link } from "@/lib/types";
 
 export default async function CategoryPage({
   params,
@@ -39,17 +39,17 @@ export default async function CategoryPage({
   const folders = (foldersData ?? []) as Folder[];
 
   const folderIds = folders.map((f) => f.id);
-  let linkCountByFolder = new Map<string, number>();
+  const linksByFolder = new Map<string, Link[]>();
   if (folderIds.length > 0) {
     const { data: links } = await supabase
       .from("links")
-      .select("folder_id")
-      .in("folder_id", folderIds);
-    for (const l of (links ?? []) as { folder_id: string }[]) {
-      linkCountByFolder.set(
-        l.folder_id,
-        (linkCountByFolder.get(l.folder_id) ?? 0) + 1
-      );
+      .select("*")
+      .in("folder_id", folderIds)
+      .order("created_at", { ascending: false });
+    for (const l of (links ?? []) as Link[]) {
+      const arr = linksByFolder.get(l.folder_id) ?? [];
+      arr.push(l);
+      linksByFolder.set(l.folder_id, arr);
     }
   }
 
@@ -63,11 +63,11 @@ export default async function CategoryPage({
           </p>
         ) : (
           folders.map((f) => (
-            <FolderCard
+            <FolderAccordionItem
               key={f.id}
               id={f.id}
               name={f.name}
-              linkCount={linkCountByFolder.get(f.id) ?? 0}
+              links={linksByFolder.get(f.id) ?? []}
             />
           ))
         )}
