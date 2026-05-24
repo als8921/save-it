@@ -21,24 +21,27 @@ function hostOf(url: string) {
 export function LinkCard({ link }: LinkCardProps) {
   const router = useRouter();
 
-  async function handleOpen() {
-    window.open(link.url, "_blank", "noopener,noreferrer");
-    if (!link.is_read) {
+  function markAsRead() {
+    if (link.is_read) return;
+    void (async () => {
       const supabase = createClient();
       await supabase
         .from("links")
         .update({ is_read: true, read_at: new Date().toISOString() })
         .eq("id", link.id);
       router.refresh();
-    }
+    })();
   }
 
   const dots = Math.min(2, link.priority ?? 0);
 
   return (
-    <button
-      type="button"
-      onClick={handleOpen}
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={markAsRead}
+      onAuxClick={markAsRead}
       className={cn(
         "group flex w-full items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left transition-colors active:bg-accent",
         link.is_read && "opacity-70"
@@ -58,6 +61,6 @@ export function LinkCard({ link }: LinkCardProps) {
         </div>
       </div>
       <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-    </button>
+    </a>
   );
 }
