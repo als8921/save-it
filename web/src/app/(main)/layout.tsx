@@ -15,9 +15,9 @@ export default async function MainLayout({
   if (!user) redirect("/login");
 
   return (
-    <div className="relative mx-auto flex min-h-svh w-full max-w-md flex-col">
+    <div className="relative mx-auto flex h-svh w-full max-w-md flex-col overflow-hidden">
       <main
-        className="flex-1"
+        className="flex-1 overflow-y-auto"
         style={{
           paddingBottom: `calc(env(safe-area-inset-bottom) + 64px)`,
         }}

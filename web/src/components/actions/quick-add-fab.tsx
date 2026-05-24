@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { AddLinkModal } from "./add-link-modal";
+import { QuickAddModal } from "./quick-add-modal";
 
-interface AddLinkFabProps {
-  folderId: string;
+interface QuickAddFabProps {
   userId: string;
 }
 
-export function AddLinkFab({ folderId, userId }: AddLinkFabProps) {
+export function QuickAddFab({ userId }: QuickAddFabProps) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -28,12 +27,7 @@ export function AddLinkFab({ folderId, userId }: AddLinkFabProps) {
           </button>
         </div>
       </div>
-      <AddLinkModal
-        open={open}
-        onOpenChange={setOpen}
-        folderId={folderId}
-        userId={userId}
-      />
+      <QuickAddModal open={open} onOpenChange={setOpen} userId={userId} />
     </>
   );
 }

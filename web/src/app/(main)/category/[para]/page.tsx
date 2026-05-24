@@ -3,7 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/shell/app-header";
 import { BackButton } from "@/components/shell/back-button";
 import { FolderAccordionItem } from "@/components/library/folder-accordion-item";
+import { LinkCard } from "@/components/library/link-card";
 import { AddFolderModal } from "@/components/actions/add-folder-modal";
+import { QuickAddFab } from "@/components/actions/quick-add-fab";
 import {
   PARA_TOKENS,
   UNASSIGNED_TOKEN,
@@ -28,14 +30,36 @@ export default async function CategoryPage({
   const isUnassigned = para === "unassigned";
   const title = isUnassigned ? UNASSIGNED_TOKEN.label : PARA_TOKENS[para].label;
 
-  const folderQuery = supabase
+  if (isUnassigned) {
+    const { data: linksData } = await supabase
+      .from("links")
+      .select("*")
+      .is("folder_id", null)
+      .order("created_at", { ascending: false });
+    const links = (linksData ?? []) as Link[];
+
+    return (
+      <>
+        <AppHeader title={title} left={<BackButton fallbackHref="/" />} />
+        <div className="space-y-2 p-4">
+          {links.length === 0 ? (
+            <p className="py-8 text-center text-sm italic text-muted-foreground">
+              저장된 링크가 없어요
+            </p>
+          ) : (
+            links.map((l) => <LinkCard key={l.id} link={l} />)
+          )}
+        </div>
+        <QuickAddFab userId={user.id} />
+      </>
+    );
+  }
+
+  const { data: foldersData } = await supabase
     .from("folders")
     .select("*")
+    .eq("para_category", para)
     .order("created_at", { ascending: true });
-
-  const { data: foldersData } = await (isUnassigned
-    ? folderQuery.is("para_category", null)
-    : folderQuery.eq("para_category", para));
   const folders = (foldersData ?? []) as Folder[];
 
   const folderIds = folders.map((f) => f.id);
@@ -47,6 +71,7 @@ export default async function CategoryPage({
       .in("folder_id", folderIds)
       .order("created_at", { ascending: false });
     for (const l of (links ?? []) as Link[]) {
+      if (!l.folder_id) continue;
       const arr = linksByFolder.get(l.folder_id) ?? [];
       arr.push(l);
       linksByFolder.set(l.folder_id, arr);
@@ -71,10 +96,7 @@ export default async function CategoryPage({
             />
           ))
         )}
-        <AddFolderModal
-          category={isUnassigned ? null : para}
-          userId={user.id}
-        />
+        <AddFolderModal category={para} userId={user.id} />
       </div>
     </>
   );

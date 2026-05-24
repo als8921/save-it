@@ -2,11 +2,16 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/shell/app-header";
 import { ParaCard } from "@/components/library/para-card";
 import { UnassignedCard } from "@/components/library/unassigned-card";
+import { QuickAddFab } from "@/components/actions/quick-add-fab";
 import { PARA_ORDER } from "@/lib/para";
 import type { Folder } from "@/lib/types";
 
 export default async function LibraryHome() {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const [{ data: folders }, { data: links }] = await Promise.all([
     supabase.from("folders").select("*"),
@@ -47,10 +52,10 @@ export default async function LibraryHome() {
           ))}
         </div>
         <UnassignedCard
-          folderCount={folderCountByCategory.get("unassigned") ?? 0}
           linkCount={linkCountByCategory.get("unassigned") ?? 0}
         />
       </div>
+      {user && <QuickAddFab userId={user.id} />}
     </>
   );
 }
