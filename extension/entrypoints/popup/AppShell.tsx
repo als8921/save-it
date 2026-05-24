@@ -1,4 +1,4 @@
-import { ChevronLeft, LogOut, Plus, X } from "lucide-react";
+import { Bookmark, ChevronLeft, LogOut, Plus, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { supabase } from "../../lib/supabase";
 import { BrowseView } from "./BrowseView";
@@ -41,14 +41,16 @@ export function AppShell({
   return (
     <div className="flex flex-col">
       {mode === "browse" ? (
-        <header className="flex items-center gap-3 border-b px-4 py-2.5">
+        <header className="flex items-center gap-2 border-b px-3 py-2.5">
           <span
-            className="font-serif text-[17px] leading-none tracking-tight"
-            style={{ fontVariationSettings: "'opsz' 144" }}
+            className="flex h-7 w-7 items-center justify-center rounded-lg"
+            style={{ backgroundColor: "var(--color-para-project-fg)" }}
+            aria-hidden
           >
-            Save<em className="italic">·</em>It
+            <Bookmark className="h-3.5 w-3.5 text-white" />
           </span>
-          <span className="eyebrow ml-auto">index</span>
+          <span className="text-sm font-semibold">Save It</span>
+          <span className="flex-1" />
           <Button
             type="button"
             size="xs"
@@ -72,23 +74,19 @@ export function AppShell({
           )}
         </header>
       ) : (
-        <header className="flex items-center justify-between gap-2 border-b px-2 py-2.5">
-          <div className="flex items-center gap-2 min-w-0">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={goToBrowse}
-              aria-label="뒤로"
-              className="h-7 w-7 shrink-0"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="eyebrow">새 항목</span>
-            <span className="font-serif italic text-[15px] leading-none tracking-tight">
-              추가
-            </span>
-          </div>
+        <header className="flex items-center gap-2 border-b px-2 py-2.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={goToBrowse}
+            aria-label="뒤로"
+            className="h-7 w-7 shrink-0"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-semibold">새 링크 추가</span>
+          <span className="flex-1" />
           {onClose && (
             <Button
               type="button"
@@ -116,15 +114,13 @@ export function AppShell({
         <BrowseView userId={userId} onAddLinkToFolder={goToAdd} />
       )}
 
-      <footer className="flex items-center gap-2 border-t px-4 py-2">
-        <span className="eyebrow">session</span>
-        <span className="grow leader-dot h-px" />
+      <footer className="flex items-center justify-end border-t px-4 py-2">
         <button
           type="button"
           onClick={handleSignOut}
-          className="flex items-center gap-1 text-[10px] uppercase tracking-[0.16em] font-mono text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          className="flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
         >
-          logout
+          로그아웃
           <LogOut className="h-3 w-3" />
         </button>
       </footer>

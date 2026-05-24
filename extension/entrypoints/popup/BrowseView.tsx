@@ -2,7 +2,9 @@ import {
   ChevronDown,
   ChevronRight,
   ExternalLink,
+  FolderOpen,
   FolderPlus,
+  Inbox,
   Plus,
   X,
 } from "lucide-react";
@@ -11,24 +13,10 @@ import { Input } from "../../components/ui/input";
 import { cn } from "../../lib/utils";
 import { supabase } from "../../lib/supabase";
 import { useSyncedState } from "../../lib/useSyncedState";
-import {
-  PARA_LABELS,
-  PARA_ORDER,
-  type Folder,
-  type Link,
-  type ParaCategory,
-} from "../../lib/types";
+import { PARA_ORDER, PARA_TOKENS, UNASSIGNED_TOKEN } from "../../lib/para";
+import type { Folder, Link, ParaCategory } from "../../lib/types";
 
 type ParaFilter = ParaCategory | "unassigned";
-
-const FILTER_OPTIONS: { key: ParaFilter; label: string; letter: string }[] = [
-  ...PARA_ORDER.map((cat) => ({
-    key: cat as ParaFilter,
-    label: PARA_LABELS[cat],
-    letter: PARA_LABELS[cat][0],
-  })),
-  { key: "unassigned", label: "미지정", letter: "U" },
-];
 
 interface BrowseViewProps {
   userId: string;
@@ -93,9 +81,22 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
     );
   }
 
-  function openLink(url: string) {
-    if (browser?.tabs?.create) browser.tabs.create({ url, active: true });
-    else window.open(url, "_blank", "noopener,noreferrer");
+  async function openLink(link: Link) {
+    if (browser?.tabs?.create) browser.tabs.create({ url: link.url, active: true });
+    else window.open(link.url, "_blank", "noopener,noreferrer");
+    if (!link.is_read) {
+      await supabase
+        .from("links")
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq("id", link.id);
+      setLinks((prev) =>
+        prev.map((l) =>
+          l.id === link.id
+            ? { ...l, is_read: true, read_at: new Date().toISOString() }
+            : l,
+        ),
+      );
+    }
   }
 
   function host(url: string) {
@@ -105,10 +106,6 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
       return "";
     }
   }
-
-  const activeFilterOption = filter
-    ? FILTER_OPTIONS.find((o) => o.key === filter)
-    : null;
 
   function openNewFolder() {
     setNewFolderName("");
@@ -151,79 +148,82 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
     setShowNewFolder(false);
   }
 
+  const filterChips: { key: ParaFilter; letter: string; label: string; fg: string; bg: string }[] = [
+    ...PARA_ORDER.map((cat) => ({
+      key: cat as ParaFilter,
+      letter: PARA_TOKENS[cat].letter,
+      label: PARA_TOKENS[cat].label,
+      fg: PARA_TOKENS[cat].fg,
+      bg: PARA_TOKENS[cat].bg,
+    })),
+    {
+      key: "unassigned" as ParaFilter,
+      letter: "·",
+      label: UNASSIGNED_TOKEN.label,
+      fg: UNASSIGNED_TOKEN.fg,
+      bg: UNASSIGNED_TOKEN.bg,
+    },
+  ];
+
   return (
-    <div className="px-4 py-4 space-y-4">
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="eyebrow">filter</span>
-          <span className="grow leader-dot h-px" />
-          <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
-            {visibleFolders.length} / {folders.length}
-          </span>
-        </div>
-        <div className="grid grid-cols-5 gap-1">
-          {FILTER_OPTIONS.map((opt) => {
-            const active = filter === opt.key;
-            return (
-              <button
-                key={opt.key}
-                type="button"
-                onClick={() => setFilter(active ? null : opt.key)}
-                title={opt.label}
-                className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 rounded-md border py-1.5 transition-colors cursor-pointer",
-                  active
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-rule bg-card hover:bg-accent",
-                )}
+    <div className="space-y-3 px-3 py-3">
+      {/* Filter row */}
+      <div className="grid grid-cols-5 gap-1.5">
+        {filterChips.map((opt) => {
+          const active = filter === opt.key;
+          return (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => setFilter(active ? null : opt.key)}
+              title={opt.label}
+              className={cn(
+                "flex flex-col items-center justify-center gap-0.5 rounded-lg border py-1.5 transition-colors cursor-pointer",
+                active ? "border-transparent" : "border-border bg-card hover:bg-accent",
+              )}
+              style={
+                active
+                  ? { backgroundColor: opt.bg, borderColor: opt.fg }
+                  : undefined
+              }
+            >
+              <span
+                className="text-[13px] font-bold leading-none"
+                style={{ color: active ? opt.fg : "var(--muted-foreground)" }}
               >
-                {opt.key === "unassigned" ? (
-                  <span className="text-[11px] leading-none tracking-tight">
-                    {opt.label}
-                  </span>
-                ) : (
-                  <>
-                    <span
-                      className="font-serif text-[18px] font-black leading-none"
-                      style={{ fontVariationSettings: "'opsz' 144" }}
-                    >
-                      {opt.letter}
-                    </span>
-                    <span
-                      className={cn(
-                        "text-[9px] leading-none tracking-tight",
-                        active
-                          ? "text-primary-foreground/85"
-                          : "text-muted-foreground",
-                      )}
-                    >
-                      {opt.label}
-                    </span>
-                  </>
+                {opt.letter}
+              </span>
+              <span
+                className={cn(
+                  "text-[9px] leading-none tracking-tight",
+                  active ? "" : "text-muted-foreground",
                 )}
-              </button>
-            );
-          })}
-        </div>
+                style={active ? { color: opt.fg } : undefined}
+              >
+                {opt.key === "unassigned" ? "미지정" : opt.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {activeFilterOption &&
+      {/* New folder shortcut — only when filtering by a category */}
+      {filter &&
         (showNewFolder ? (
-          <div className="rounded-md border border-rule bg-card/60 p-2.5 space-y-2">
+          <div className="space-y-2 rounded-xl border bg-card/60 p-2.5">
             <div className="flex items-center gap-2">
-              <span className="eyebrow">새 폴더</span>
-              <span className="font-serif text-[12px] font-black leading-none">
-                {activeFilterOption.letter}
+              <span className="text-[11px] font-medium">새 폴더</span>
+              <span className="text-[10px] text-muted-foreground">
+                {filter === "unassigned"
+                  ? UNASSIGNED_TOKEN.label
+                  : PARA_TOKENS[filter].label}
               </span>
-              <span className="text-[10px] text-muted-foreground tracking-tight">
-                {activeFilterOption.label}
-              </span>
-              <span className="grow leader-dot h-px" />
+              <span className="flex-1" />
               <button
                 type="button"
                 onClick={cancelNewFolder}
                 aria-label="취소"
-                className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+                className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -250,7 +250,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
               </Button>
             </div>
             {folderError && (
-              <p className="text-xs text-destructive border-l-2 border-destructive pl-2">
+              <p className="border-l-2 border-destructive pl-2 text-xs text-destructive">
                 {folderError}
               </p>
             )}
@@ -259,12 +259,14 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
           <button
             type="button"
             onClick={openNewFolder}
-            className="w-full flex items-center justify-center gap-1.5 rounded-md border border-dashed border-rule bg-card/40 py-2 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer"
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed bg-card/40 py-2 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
           >
             <FolderPlus className="h-3 w-3" />
             <span>
               <span className="text-muted-foreground/80">
-                {activeFilterOption.label}
+                {filter === "unassigned"
+                  ? UNASSIGNED_TOKEN.label
+                  : PARA_TOKENS[filter].label}
               </span>
               <span className="ml-1">폴더 추가</span>
             </span>
@@ -272,14 +274,13 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
         ))}
 
       {loading && (
-        <div className="flex items-center gap-2 py-4">
-          <span className="eyebrow">loading</span>
-          <span className="grow leader-dot h-px" />
-        </div>
+        <p className="py-4 text-center text-xs text-muted-foreground">
+          불러오는 중…
+        </p>
       )}
 
       {error && (
-        <p className="text-xs text-destructive border-l-2 border-destructive pl-2">
+        <p className="border-l-2 border-destructive pl-2 text-xs text-destructive">
           {error}
         </p>
       )}
@@ -287,37 +288,43 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
       {!loading && !error && (
         <div>
           {visibleFolders.length === 0 ? (
-            <p className="text-xs text-muted-foreground italic py-6 text-center">
+            <p className="py-6 text-center text-xs italic text-muted-foreground">
               폴더가 없어요
             </p>
           ) : (
-            <ul className="space-y-px">
-              {visibleFolders.map((folder, idx) => {
+            <ul className="space-y-1.5">
+              {visibleFolders.map((folder) => {
                 const folderLinks = links.filter(
                   (l) => l.folder_id === folder.id,
                 );
                 const isOpen = expanded.has(folder.id);
+                const isUnassigned = folder.para_category === null;
                 return (
-                  <li key={folder.id}>
-                    <div className="group flex items-stretch rounded hover:bg-accent transition-colors">
+                  <li
+                    key={folder.id}
+                    className="overflow-hidden rounded-xl border bg-card"
+                  >
+                    <div className="group flex items-stretch">
                       <button
                         type="button"
                         onClick={() => toggleFolder(folder.id)}
-                        className="flex flex-1 min-w-0 items-baseline gap-2 px-1.5 py-1.5 text-xs text-left cursor-pointer"
+                        aria-expanded={isOpen}
+                        className="flex flex-1 items-center gap-2 px-3 py-2.5 text-left transition-colors active:bg-accent cursor-pointer"
                       >
-                        <span className="font-mono text-[10px] tabular-nums text-muted-foreground shrink-0">
-                          {String(idx + 1).padStart(2, "0")}
-                        </span>
                         {isOpen ? (
-                          <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground self-center" />
+                          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                         ) : (
-                          <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground self-center" />
+                          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                         )}
-                        <span className="truncate font-medium">
+                        {isUnassigned ? (
+                          <Inbox className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        ) : (
+                          <FolderOpen className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        )}
+                        <span className="flex-1 truncate text-xs font-medium">
                           {folder.name}
                         </span>
-                        <span className="grow leader-dot h-px self-center" />
-                        <span className="font-mono text-[10px] tabular-nums text-muted-foreground shrink-0">
+                        <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
                           {folderLinks.length}
                         </span>
                       </button>
@@ -327,28 +334,32 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
                           onClick={() => onAddLinkToFolder(folder.id)}
                           aria-label={`${folder.name}에 링크 추가`}
                           title="이 폴더에 링크 추가"
-                          className="flex h-7 w-7 items-center justify-center self-center rounded text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground hover:bg-card transition-all cursor-pointer"
+                          className="flex w-8 items-center justify-center border-l text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:text-foreground active:bg-accent cursor-pointer"
                         >
-                          <Plus className="h-3 w-3" />
+                          <Plus className="h-3.5 w-3.5" />
                         </button>
                       )}
                     </div>
                     {isOpen && (
-                      <div className="ml-7 mr-1 mb-1 space-y-px">
+                      <div className="border-t bg-background/40 p-1.5">
                         {folderLinks.length === 0 ? (
-                          <p className="text-[11px] italic text-muted-foreground px-2 py-1">
+                          <p className="px-2 py-1.5 text-[11px] italic text-muted-foreground">
                             비어있음
                           </p>
                         ) : (
-                          folderLinks.map((link, i) => (
-                            <LinkRow
-                              key={link.id}
-                              index={i + 1}
-                              title={link.title}
-                              host={host(link.url)}
-                              onClick={() => openLink(link.url)}
-                            />
-                          ))
+                          <ul className="space-y-1">
+                            {folderLinks.map((link) => (
+                              <li key={link.id}>
+                                <LinkRow
+                                  title={link.title}
+                                  host={host(link.url)}
+                                  isRead={link.is_read}
+                                  priority={link.priority ?? 0}
+                                  onClick={() => openLink(link)}
+                                />
+                              </li>
+                            ))}
+                          </ul>
                         )}
                       </div>
                     )}
@@ -364,34 +375,44 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
 }
 
 function LinkRow({
-  index,
   title,
   host,
+  isRead,
+  priority,
   onClick,
 }: {
-  index: number;
   title: string;
   host: string;
+  isRead: boolean;
+  priority: number;
   onClick: () => void;
 }) {
+  const dots = Math.min(2, priority);
   return (
     <button
       type="button"
       onClick={onClick}
-      className="group w-full flex items-baseline gap-2 rounded px-2 py-1.5 text-left hover:bg-accent transition-colors cursor-pointer"
+      className={cn(
+        "group flex w-full items-center gap-2 rounded-lg border bg-card px-2.5 py-2 text-left transition-colors active:bg-accent cursor-pointer",
+        isRead && "opacity-70",
+      )}
     >
-      <span className="font-mono text-[10px] tabular-nums text-muted-foreground shrink-0 self-center">
-        {String(index).padStart(2, "0")}
-      </span>
       <div className="min-w-0 flex-1">
-        <div className="text-xs truncate">{title}</div>
-        {host && (
-          <div className="font-mono text-[10px] text-muted-foreground truncate">
-            {host}
-          </div>
-        )}
+        <div className="truncate text-xs font-medium">{title}</div>
+        <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+          {dots > 0 && (
+            <span className="flex gap-0.5" aria-label={`우선도 ${dots}`}>
+              {Array.from({ length: dots }).map((_, i) => (
+                <span key={i} className="h-1 w-1 rounded-full bg-foreground" />
+              ))}
+            </span>
+          )}
+          {host && (
+            <span className="truncate font-mono">{host}</span>
+          )}
+        </div>
       </div>
-      <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity self-center" />
+      <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
     </button>
   );
 }

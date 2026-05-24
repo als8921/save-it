@@ -26,7 +26,7 @@ export default defineContentScript({
 });
 
 const TOGGLE_SHADOW =
-  "0 12px 28px rgba(60, 30, 20, 0.12), 0 2px 6px rgba(60, 30, 20, 0.05)";
+  "0 8px 20px rgba(15, 23, 42, 0.10), 0 2px 4px rgba(15, 23, 42, 0.05)";
 const POS_KEY = "saveit_widget_pos";
 const OPEN_KEY = "saveit_widget_open";
 const DEFAULT_POS = { top: 20, right: 20 };
@@ -163,7 +163,7 @@ function FloatingWidget() {
           onPointerUp={handlePointerUp}
           aria-label="닫기"
           title="드래그하여 이동, 클릭하여 닫기"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-rule bg-card text-foreground hover:bg-accent transition-colors select-none"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground hover:bg-accent transition-colors select-none"
           style={buttonStyle}
         >
           <X className="h-4 w-4 pointer-events-none" />
@@ -176,14 +176,17 @@ function FloatingWidget() {
           onPointerUp={handlePointerUp}
           aria-label="Save It"
           title="드래그하여 이동, 클릭하여 열기"
-          className="group flex h-10 items-center gap-1.5 rounded-full border border-rule bg-card pl-2.5 pr-3 text-foreground hover:bg-accent transition-colors select-none"
+          className="group flex h-10 items-center gap-1.5 rounded-full border border-border bg-card pl-2 pr-3.5 text-foreground hover:bg-accent transition-colors select-none"
           style={buttonStyle}
         >
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground pointer-events-none">
-            <Bookmark className="h-2.5 w-2.5" />
+          <span
+            className="flex h-7 w-7 items-center justify-center rounded-full pointer-events-none"
+            style={{ backgroundColor: "var(--color-para-project-fg)" }}
+          >
+            <Bookmark className="h-3.5 w-3.5 text-white" />
           </span>
-          <span className="font-mono text-[10px] tracking-[0.18em] uppercase pointer-events-none">
-            save
+          <span className="text-[12px] font-semibold pointer-events-none">
+            Save It
           </span>
         </button>
       )}
@@ -200,23 +203,15 @@ function FloatingPanel({ onSaved }: { onSaved: () => void }) {
 
   return (
     <div
-      className="paper-grain w-[360px] rounded-xl text-foreground animate-fade-up overflow-hidden"
+      className="w-[360px] overflow-hidden rounded-2xl border border-border bg-background text-foreground animate-fade-up"
       style={{
-        border: "1px solid oklch(0.84 0.012 85)",
         boxShadow:
-          "0 24px 60px rgba(60, 30, 20, 0.16), 0 6px 18px rgba(60, 30, 20, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6)",
+          "0 24px 60px rgba(15, 23, 42, 0.16), 0 6px 18px rgba(15, 23, 42, 0.08)",
       }}
     >
       {auth.status === "loading" && (
-        <div className="flex items-center gap-2 px-4 py-3">
-          <span
-            className="font-serif text-[15px] leading-none tracking-tight"
-            style={{ fontVariationSettings: "'opsz' 144" }}
-          >
-            Save<em className="italic">·</em>It
-          </span>
-          <span className="grow leader-dot h-px" />
-          <span className="eyebrow">loading</span>
+        <div className="flex items-center justify-center px-4 py-6">
+          <span className="text-xs text-muted-foreground">불러오는 중…</span>
         </div>
       )}
       {auth.status === "anonymous" && <LoginView />}

@@ -4,12 +4,8 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { cn } from "../../lib/utils";
 import { supabase } from "../../lib/supabase";
-import {
-  PARA_LABELS,
-  PARA_ORDER,
-  type Folder,
-  type ParaCategory,
-} from "../../lib/types";
+import { PARA_ORDER, PARA_TOKENS, UNASSIGNED_TOKEN } from "../../lib/para";
+import type { Folder, ParaCategory } from "../../lib/types";
 
 interface SaveViewProps {
   userId: string;
@@ -20,15 +16,6 @@ interface SaveViewProps {
 }
 
 type ParaTab = ParaCategory | "unassigned";
-
-const PARA_TABS: { key: ParaTab; label: string; letter: string }[] = [
-  ...PARA_ORDER.map((cat) => ({
-    key: cat as ParaTab,
-    label: PARA_LABELS[cat],
-    letter: PARA_LABELS[cat][0],
-  })),
-  { key: "unassigned", label: "미지정", letter: "U" },
-];
 
 const PRIORITY_OPTIONS = [
   { value: 0, label: "보통", dots: 0 },
@@ -87,7 +74,7 @@ export function SaveView({
   const filteredFolders = folders.filter((f) =>
     selectedPara === "unassigned"
       ? f.para_category === null
-      : f.para_category === selectedPara
+      : f.para_category === selectedPara,
   );
 
   async function handleCreateFolder(e: React.FormEvent) {
@@ -112,7 +99,7 @@ export function SaveView({
       setError(
         error.code === "23505"
           ? "이미 같은 이름의 폴더가 있어요"
-          : error.message
+          : error.message,
       );
       return;
     }
@@ -150,9 +137,26 @@ export function SaveView({
     setTimeout(() => onSaved(), 600);
   }
 
+  const paraChips: { key: ParaTab; letter: string; label: string; fg: string; bg: string }[] = [
+    ...PARA_ORDER.map((cat) => ({
+      key: cat as ParaTab,
+      letter: PARA_TOKENS[cat].letter,
+      label: PARA_TOKENS[cat].label,
+      fg: PARA_TOKENS[cat].fg,
+      bg: PARA_TOKENS[cat].bg,
+    })),
+    {
+      key: "unassigned" as ParaTab,
+      letter: "·",
+      label: UNASSIGNED_TOKEN.label,
+      fg: UNASSIGNED_TOKEN.fg,
+      bg: UNASSIGNED_TOKEN.bg,
+    },
+  ];
+
   return (
-    <form onSubmit={handleSave} className="px-4 py-4 space-y-5">
-      <Section number="01" title="링크">
+    <form onSubmit={handleSave} className="space-y-4 px-3 py-3">
+      <Section title="링크">
         <div className="space-y-1.5">
           <Label htmlFor="url">URL</Label>
           <Input
@@ -170,7 +174,7 @@ export function SaveView({
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="비워두면 URL이 제목이 됩니다"
+            placeholder="비워두면 URL이 제목"
           />
         </div>
 
@@ -185,7 +189,7 @@ export function SaveView({
         </div>
       </Section>
 
-      <Section number="02" title="우선도">
+      <Section title="우선도">
         <div className="flex gap-1.5">
           {PRIORITY_OPTIONS.map((opt) => (
             <PriorityChip
@@ -199,36 +203,62 @@ export function SaveView({
         </div>
       </Section>
 
-      <Section number="03" title="카테고리">
-        <div className="flex flex-wrap gap-1.5">
-          {PARA_TABS.map((tab) => (
-            <Chip
-              key={tab.key}
-              active={selectedPara === tab.key}
-              onClick={() => {
-                setSelectedPara(tab.key);
-                setSelectedFolderId(null);
-                setShowNewFolder(false);
-              }}
-              letter={tab.key === "unassigned" ? undefined : tab.letter}
-            >
-              {tab.label}
-            </Chip>
-          ))}
+      <Section title="카테고리">
+        <div className="grid grid-cols-5 gap-1.5">
+          {paraChips.map((chip) => {
+            const active = selectedPara === chip.key;
+            return (
+              <button
+                key={chip.key}
+                type="button"
+                onClick={() => {
+                  setSelectedPara(chip.key);
+                  setSelectedFolderId(null);
+                  setShowNewFolder(false);
+                }}
+                title={chip.label}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-0.5 rounded-lg border py-1.5 transition-colors cursor-pointer",
+                  active ? "border-transparent" : "border-border bg-card hover:bg-accent",
+                )}
+                style={
+                  active
+                    ? { backgroundColor: chip.bg, borderColor: chip.fg }
+                    : undefined
+                }
+              >
+                <span
+                  className="text-[13px] font-bold leading-none"
+                  style={{ color: active ? chip.fg : "var(--muted-foreground)" }}
+                >
+                  {chip.letter}
+                </span>
+                <span
+                  className={cn(
+                    "text-[9px] leading-none tracking-tight",
+                    active ? "" : "text-muted-foreground",
+                  )}
+                  style={active ? { color: chip.fg } : undefined}
+                >
+                  {chip.key === "unassigned" ? "미지정" : chip.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </Section>
 
-      <Section number="04" title="폴더">
+      <Section title="폴더">
         {foldersLoading ? (
-          <p className="text-xs text-muted-foreground italic">불러오는 중…</p>
+          <p className="text-xs italic text-muted-foreground">불러오는 중…</p>
         ) : (
-          <div className="rounded-md border border-rule bg-card/60 p-1 space-y-0.5 max-h-[160px] overflow-y-auto">
+          <div className="max-h-[180px] space-y-1 overflow-y-auto rounded-xl border bg-card/40 p-1.5">
             {filteredFolders.length === 0 && !showNewFolder && (
-              <p className="px-2 py-2 text-xs text-muted-foreground italic">
+              <p className="px-2 py-2 text-xs italic text-muted-foreground">
                 이 카테고리에 폴더가 없습니다
               </p>
             )}
-            {filteredFolders.map((folder, i) => {
+            {filteredFolders.map((folder) => {
               const selected = selectedFolderId === folder.id;
               return (
                 <button
@@ -236,34 +266,20 @@ export function SaveView({
                   type="button"
                   onClick={() => setSelectedFolderId(folder.id)}
                   className={cn(
-                    "w-full flex items-baseline gap-2 rounded px-2 py-1.5 text-xs text-left transition-colors cursor-pointer",
+                    "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition-colors cursor-pointer",
                     selected
                       ? "bg-primary text-primary-foreground"
-                      : "hover:bg-accent hover:text-accent-foreground"
+                      : "hover:bg-accent",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "font-mono text-[10px] tabular-nums",
-                      selected ? "text-primary-foreground/70" : "text-muted-foreground"
-                    )}
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="truncate">{folder.name}</span>
-                  <span
-                    className={cn(
-                      "grow leader-dot h-px self-center",
-                      selected ? "opacity-30" : ""
-                    )}
-                  />
+                  <span className="flex-1 truncate font-medium">{folder.name}</span>
                   {selected && <Check className="h-3 w-3 shrink-0" />}
                 </button>
               );
             })}
 
             {showNewFolder ? (
-              <div className="flex gap-1 px-1 pt-1">
+              <div className="flex gap-1 pt-1">
                 <Input
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
@@ -291,10 +307,10 @@ export function SaveView({
               <button
                 type="button"
                 onClick={() => setShowNewFolder(true)}
-                className="w-full flex items-center gap-1.5 rounded px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+                className="flex w-full items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
               >
                 <FolderPlus className="h-3 w-3" />
-                <span className="italic">새 폴더 만들기</span>
+                <span>새 폴더 만들기</span>
               </button>
             )}
           </div>
@@ -302,7 +318,7 @@ export function SaveView({
       </Section>
 
       {error && (
-        <p className="text-xs text-destructive border-l-2 border-destructive pl-2">
+        <p className="border-l-2 border-destructive pl-2 text-xs text-destructive">
           {error}
         </p>
       )}
@@ -314,13 +330,13 @@ export function SaveView({
       >
         {savedFlash ? (
           <>
-            <Check className="h-4 w-4 mr-1" />
+            <Check className="mr-1 h-4 w-4" />
             저장됨
           </>
         ) : saving ? (
           "저장 중…"
         ) : (
-          "색인에 저장"
+          "저장"
         )}
       </Button>
     </form>
@@ -328,70 +344,19 @@ export function SaveView({
 }
 
 function Section({
-  number,
   title,
   children,
 }: {
-  number: string;
   title: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="space-y-2.5">
-      <div className="flex items-baseline gap-2">
-        <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
-          {number}
-        </span>
-        <span className="font-serif italic text-[13px] leading-none">
-          {title}
-        </span>
-        <span className="grow border-t" />
-      </div>
-      <div className="space-y-2.5">{children}</div>
+    <section className="space-y-2">
+      <h2 className="px-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {title}
+      </h2>
+      <div className="space-y-2">{children}</div>
     </section>
-  );
-}
-
-function Chip({
-  active,
-  onClick,
-  letter,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  letter?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "inline-flex items-baseline gap-1.5 rounded-full border py-1 transition-colors cursor-pointer",
-        letter ? "pl-2.5 pr-3" : "px-3",
-        active
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-rule bg-card hover:bg-accent"
-      )}
-    >
-      {letter && (
-        <span
-          className="font-serif text-[13px] font-black leading-none"
-          style={{ fontVariationSettings: "'opsz' 144" }}
-        >
-          {letter}
-        </span>
-      )}
-      <span
-        className={cn(
-          "text-[10px] leading-none tracking-tight",
-          active ? "text-primary-foreground/85" : "text-muted-foreground"
-        )}
-      >
-        {children}
-      </span>
-    </button>
   );
 }
 
@@ -411,10 +376,10 @@ function PriorityChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex flex-1 flex-col items-center justify-center gap-1 rounded-md border py-2 transition-colors cursor-pointer",
+        "flex flex-1 flex-col items-center justify-center gap-1 rounded-lg border py-2 transition-colors cursor-pointer",
         active
           ? "border-primary bg-primary text-primary-foreground"
-          : "border-rule bg-card hover:bg-accent"
+          : "border-border bg-card hover:bg-accent",
       )}
     >
       <span className="flex gap-0.5">
@@ -429,7 +394,7 @@ function PriorityChip({
                   : "bg-foreground"
                 : active
                   ? "bg-primary-foreground/25"
-                  : "bg-muted-foreground/25"
+                  : "bg-muted-foreground/25",
             )}
           />
         ))}
