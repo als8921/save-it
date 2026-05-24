@@ -71,11 +71,16 @@ export function SaveView({
       });
   }, []);
 
-  const filteredFolders = folders.filter((f) =>
-    selectedPara === "unassigned"
-      ? f.para_category === null
-      : f.para_category === selectedPara,
+  const unassignedFolder = folders.find((f) => f.para_category === null);
+  const filteredFolders = folders.filter(
+    (f) => f.para_category === selectedPara,
   );
+
+  useEffect(() => {
+    if (selectedPara === "unassigned" && unassignedFolder) {
+      setSelectedFolderId(unassignedFolder.id);
+    }
+  }, [selectedPara, unassignedFolder]);
 
   async function handleCreateFolder(e: React.FormEvent) {
     e.preventDefault();
@@ -83,13 +88,13 @@ export function SaveView({
     setCreatingFolder(true);
     setError("");
 
-    const para = selectedPara === "unassigned" ? null : selectedPara;
+    if (selectedPara === "unassigned") return;
     const { data, error } = await supabase
       .from("folders")
       .insert({
         user_id: userId,
         name: newFolderName.trim(),
-        para_category: para,
+        para_category: selectedPara,
       })
       .select("*")
       .single();
@@ -112,16 +117,18 @@ export function SaveView({
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedFolderId) {
+    if (selectedPara !== "unassigned" && !selectedFolderId) {
       setError("폴더를 선택하세요");
       return;
     }
     setError("");
     setSaving(true);
 
+    const folderIdToSave =
+      selectedPara === "unassigned" ? null : selectedFolderId;
     const { error } = await supabase.from("links").insert({
       user_id: userId,
-      folder_id: selectedFolderId,
+      folder_id: folderIdToSave,
       url,
       title: title || url,
       description: description || null,
@@ -251,6 +258,10 @@ export function SaveView({
       <Section title="폴더">
         {foldersLoading ? (
           <p className="text-xs italic text-muted-foreground">불러오는 중…</p>
+        ) : selectedPara === "unassigned" ? (
+          <p className="rounded-xl border bg-card/40 px-3 py-2 text-xs text-muted-foreground">
+            {UNASSIGNED_TOKEN.label}에 바로 저장됩니다
+          </p>
         ) : (
           <div className="max-h-[180px] space-y-1 overflow-y-auto rounded-xl border bg-card/40 p-1.5">
             {filteredFolders.length === 0 && !showNewFolder && (
@@ -325,7 +336,9 @@ export function SaveView({
 
       <Button
         type="submit"
-        disabled={saving || !selectedFolderId}
+        disabled={
+          saving || (selectedPara !== "unassigned" && !selectedFolderId)
+        }
         className="w-full"
       >
         {savedFlash ? (

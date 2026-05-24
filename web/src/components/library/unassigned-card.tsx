@@ -3,12 +3,10 @@ import { Inbox } from "lucide-react";
 import { UNASSIGNED_TOKEN } from "@/lib/para";
 
 interface UnassignedCardProps {
-  folderCount: number;
   linkCount: number;
 }
 
-export function UnassignedCard({ folderCount, linkCount }: UnassignedCardProps) {
-  if (folderCount === 0) return null;
+export function UnassignedCard({ linkCount }: UnassignedCardProps) {
   return (
     <Link
       href="/category/unassigned"
@@ -25,7 +23,7 @@ export function UnassignedCard({ folderCount, linkCount }: UnassignedCardProps) 
       <div className="flex-1">
         <div className="text-sm font-semibold">{UNASSIGNED_TOKEN.label}</div>
         <div className="text-xs text-muted-foreground tabular-nums">
-          {folderCount}개 폴더 · {linkCount}개 링크
+          {linkCount}개 링크
         </div>
       </div>
     </Link>

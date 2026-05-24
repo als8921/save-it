@@ -11,7 +11,7 @@ export interface Folder {
 export interface Link {
   id: string;
   user_id: string;
-  folder_id: string;
+  folder_id: string | null;
   url: string;
   title: string;
   description: string | null;

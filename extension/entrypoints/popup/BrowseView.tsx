@@ -207,16 +207,14 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
         })}
       </div>
 
-      {/* New folder shortcut — only when filtering by a category */}
-      {filter &&
+      {/* New folder shortcut — only when filtering by a real PARA category (not 미지정) */}
+      {filter && filter !== "unassigned" &&
         (showNewFolder ? (
           <div className="space-y-2 rounded-xl border bg-card/60 p-2.5">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-medium">새 폴더</span>
               <span className="text-[10px] text-muted-foreground">
-                {filter === "unassigned"
-                  ? UNASSIGNED_TOKEN.label
-                  : PARA_TOKENS[filter].label}
+                {PARA_TOKENS[filter].label}
               </span>
               <span className="flex-1" />
               <button
@@ -264,9 +262,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
             <FolderPlus className="h-3 w-3" />
             <span>
               <span className="text-muted-foreground/80">
-                {filter === "unassigned"
-                  ? UNASSIGNED_TOKEN.label
-                  : PARA_TOKENS[filter].label}
+                {PARA_TOKENS[filter].label}
               </span>
               <span className="ml-1">폴더 추가</span>
             </span>
@@ -285,7 +281,34 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
         </p>
       )}
 
-      {!loading && !error && (
+      {!loading && !error && filter === "unassigned" && (() => {
+        const unassignedLinks = links.filter((l) => l.folder_id === null);
+        return (
+          <div>
+            {unassignedLinks.length === 0 ? (
+              <p className="py-6 text-center text-xs italic text-muted-foreground">
+                저장된 링크가 없어요
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {unassignedLinks.map((link) => (
+                  <li key={link.id}>
+                    <LinkRow
+                      title={link.title}
+                      host={host(link.url)}
+                      isRead={link.is_read}
+                      priority={link.priority ?? 0}
+                      onClick={() => openLink(link)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      })()}
+
+      {!loading && !error && filter !== "unassigned" && (
         <div>
           {visibleFolders.length === 0 ? (
             <p className="py-6 text-center text-xs italic text-muted-foreground">
