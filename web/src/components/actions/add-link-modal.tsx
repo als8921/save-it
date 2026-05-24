@@ -23,7 +23,7 @@ export function AddLinkModal({ open, onOpenChange, folderId, userId }: AddLinkMo
   const [priority, setPriority] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [duplicate, setDuplicate] = useState<{ id: string; folder_id: string } | null>(null);
+  const [duplicate, setDuplicate] = useState<{ id: string; folder_id: string | null } | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -71,7 +71,7 @@ export function AddLinkModal({ open, onOpenChange, folderId, userId }: AddLinkMo
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
-        <Dialog.Popup className="fixed inset-x-0 bottom-0 z-50 max-h-[90svh] overflow-y-auto rounded-t-2xl bg-background p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-xl">
+        <Dialog.Popup className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[90svh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-background p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-xl">
           <div className="flex items-center justify-between pb-3">
             <Dialog.Title className="text-base font-semibold">새 링크</Dialog.Title>
             <Dialog.Close
@@ -129,10 +129,14 @@ export function AddLinkModal({ open, onOpenChange, folderId, userId }: AddLinkMo
               <p className="border-l-2 border-amber-500 pl-2 text-xs text-amber-700">
                 이미 저장된 URL이에요.{" "}
                 <a
-                  href={`/folder/${duplicate.folder_id}`}
+                  href={
+                    duplicate.folder_id
+                      ? `/folder/${duplicate.folder_id}`
+                      : `/category/unassigned`
+                  }
                   className="underline"
                 >
-                  해당 폴더 열기
+                  {duplicate.folder_id ? "해당 폴더 열기" : "미지정 보기"}
                 </a>
               </p>
             )}
