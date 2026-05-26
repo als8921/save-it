@@ -11,6 +11,14 @@ const fetcher = async (url: string) => {
   return res.json() as Promise<{ items: RemindCandidate[] }>;
 };
 
+function recordOpen(linkId: string) {
+  fetch("/api/reminders/opened", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ linkId }),
+  }).catch(() => {});
+}
+
 export function TodayReminderSection() {
   const { data, error, isLoading } = useSWR(
     "/api/reminders/today",
@@ -57,6 +65,7 @@ export function TodayReminderSection() {
                 href={c.link.url}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => recordOpen(c.link.id)}
                 className="block"
               >
                 <div className="text-sm font-medium line-clamp-1">
