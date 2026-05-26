@@ -25,20 +25,20 @@ export function TodayReminderSection() {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="h-16 rounded-xl border border-border bg-card animate-pulse"
+              className="h-16 rounded-2xl border border-border bg-card animate-pulse"
             />
           ))}
         </div>
       )}
 
       {error && !isLoading && (
-        <div className="rounded-xl border border-border bg-card p-3 text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-border bg-card p-3 text-sm text-muted-foreground">
           리마인드 목록을 불러오지 못했어요.
         </div>
       )}
 
       {!isLoading && !error && data && data.items.length === 0 && (
-        <div className="rounded-xl border border-border bg-card p-3 text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-border bg-card p-3 text-sm text-muted-foreground">
           오늘 다시 볼 링크가 없어요.
         </div>
       )}
