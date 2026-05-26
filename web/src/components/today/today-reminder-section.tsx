@@ -20,10 +20,6 @@ export function TodayReminderSection() {
 
   return (
     <section className="space-y-2">
-      <h2 className="text-sm font-medium text-muted-foreground px-1">
-        오늘 다시 볼 링크
-      </h2>
-
       {isLoading && (
         <div className="space-y-2">
           {[0, 1, 2].map((i) => (
