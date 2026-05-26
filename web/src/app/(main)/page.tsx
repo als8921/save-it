@@ -1,9 +1,10 @@
+import Link from "next/link";
+import { Bell } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/shell/app-header";
 import { ParaCard } from "@/components/library/para-card";
 import { UnassignedCard } from "@/components/library/unassigned-card";
 import { QuickAddFab } from "@/components/actions/quick-add-fab";
-import { TodayReminderSection } from "@/components/today/today-reminder-section";
 import { PARA_ORDER } from "@/lib/para";
 import type { Folder } from "@/lib/types";
 
@@ -40,9 +41,19 @@ export default async function LibraryHome() {
 
   return (
     <>
-      <AppHeader title="라이브러리" />
+      <AppHeader
+        title="라이브러리"
+        right={
+          <Link
+            href="/today"
+            aria-label="오늘 다시 볼 링크"
+            className="flex h-9 w-9 items-center justify-center text-muted-foreground hover:text-foreground"
+          >
+            <Bell className="h-5 w-5" />
+          </Link>
+        }
+      />
       <div className="p-4 space-y-3">
-        <TodayReminderSection />
         <div className="grid grid-cols-2 gap-3">
           {PARA_ORDER.map((category) => (
             <ParaCard
