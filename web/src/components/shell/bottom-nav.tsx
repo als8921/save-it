@@ -38,7 +38,7 @@ export function BottomNav() {
                 aria-current={active ? "page" : undefined}
                 aria-label={tab.label}
                 className={cn(
-                  "flex items-center justify-center py-3 transition-colors",
+                  "flex h-16 items-center justify-center transition-colors",
                   active
                     ? "text-[var(--color-para-project-fg)]"
                     : "text-muted-foreground"
