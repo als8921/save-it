@@ -117,6 +117,7 @@ async function fetchLinksByIds(
       "id, user_id, folder_id, url, title, description, priority, is_read, created_at, read_at, folders ( id, name, para_category )"
     )
     .eq("user_id", userId)
+    .eq("is_read", false)
     .in("id", linkIds);
   return (data ?? []) as unknown as JoinedRow[];
 }
