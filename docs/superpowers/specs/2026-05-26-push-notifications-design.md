@@ -20,8 +20,9 @@ iOS Safari PWA(16.4+)는 홈 화면에 추가 후에만 Web Push를 지원하므
 - Service Worker (`public/sw.js`) — push 수신 + notificationclick
 - VAPID 키 기반 Web Push (`web-push` 라이브러리)
 - `push_subscriptions` 테이블 (디바이스별 endpoint)
-- API: `POST /api/push/subscribe`, `DELETE /api/push/subscribe`, `GET /api/cron/remind-push`
-- 설정 페이지의 알림 토글 (`/settings`)
+- API: `POST /api/push/subscribe`, `DELETE /api/push/subscribe`,
+  `GET /api/cron/remind-push`, `POST /api/push/test`
+- 설정 페이지의 알림 토글 + **"지금 테스트 알림 보내기" 버튼**
 - Vercel Cron: hourly로 돌며 사용자 daily_time과 매칭해 발송
 
 ### 1.2 스코프 외 (의도적 제외)
@@ -153,6 +154,22 @@ KPI 집계가 필요해지면 v1.5에서 도입.
 - 인증: `Authorization: Bearer $CRON_SECRET` 헤더. 일치하지 않으면 401.
 - 동작: §6.2 발송 루프 실행.
 - 응답: `200 { sent: <number>, skipped: <number>, removed: <number> }`
+
+### 4.4 `POST /api/push/test` (개발/수동 검증용)
+
+- 인증: 쿠키 세션 (`auth.getUser()`). 미인증이면 401.
+- Body: 없음.
+- 동작:
+  1. 호출자의 `push_subscriptions` 모든 row select
+  2. 각 row에 고정 payload로 web-push 발송
+     `{ title: "save-it 테스트", body: "알림이 잘 도착하나요?", url: "/today" }`
+  3. 410/404 응답 → row 삭제 (cron과 동일)
+- 응답: `200 { sent: <number>, removed: <number> }` / `401`
+- Cron이 doli수 없는 시각이거나, 후보가 0개여서 일일 다이제스트가 skip
+  되는 상황에서도 SW/VAPID/subscription 흐름을 즉시 검증할 수 있다.
+- Rate limit: 서버 측에서 두지 않는다. UI 측 throttle(클릭 후 5초간
+  disable)만 둠. 악용 가능성이 낮고(본인 디바이스로만 발송) MVP에선
+  과잉 설계.
 
 ### 4.4 Vercel Cron 설정 (`web/vercel.json`)
 
@@ -289,8 +306,17 @@ insert를 하는데, push 발송 시점에도 이 함수를 그대로 호출한�
 │                                        │
 │  iOS는 홈 화면에 추가 후에만           │
 │  알림을 받을 수 있어요.                │
+│                                        │
+│  [  지금 테스트 알림 보내기  ]         │
+│  (토글이 ON일 때만 활성)               │
 └────────────────────────────────────────┘
 ```
+
+테스트 버튼:
+- 토글이 ON이고 권한이 'granted'일 때만 활성
+- 클릭 시 `POST /api/push/test` → 자기 디바이스로 즉시 알림
+- 클릭 직후 5초간 비활성 (중복 클릭 방지)
+- 결과 toast (성공: "알림을 보냈어요" / 실패: "잠시 후 다시 시도")
 
 - 토글 ON 클릭 (user gesture 안):
   1. `Notification.requestPermission()` → granted 확인
@@ -389,10 +415,11 @@ npx web-push generate-vapid-keys
 
 ### 수동 (Android Chrome 또는 PC Chrome 우선)
 - 설정 토글 ON → 권한 prompt → 허용 → DB row 생성 확인
+- **"지금 테스트 알림 보내기" 버튼 클릭** → 즉시 알림 노출 확인
 - 수동 cron 호출: `curl -H "Authorization: Bearer $CRON_SECRET" .../api/cron/remind-push`
 - 시스템 알림 노출 확인
 - 알림 클릭 → /today 페이지로 이동
-- 설정 토글 OFF → DB row 삭제 확인
+- 설정 토글 OFF → DB row 삭제 확인 + 테스트 버튼 비활성
 - 권한 거부 케이스 — disabled UI 확인
 
 ### iOS (별도)
