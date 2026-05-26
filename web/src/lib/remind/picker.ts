@@ -180,9 +180,10 @@ async function recordSent(
 }
 
 export async function pickDailyRemindCandidates(
-  userId: string
+  userId: string,
+  supabaseOverride?: Supabase
 ): Promise<RemindCandidate[]> {
-  const supabase = await createClient();
+  const supabase = supabaseOverride ?? (await createClient());
   const limit = await resolveLimit(supabase, userId);
   const now = new Date();
 
