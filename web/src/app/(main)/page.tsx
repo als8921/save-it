@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { Bell } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/shell/app-header";
 import { ParaCard } from "@/components/library/para-card";
@@ -43,15 +41,6 @@ export default async function LibraryHome() {
     <>
       <AppHeader
         title="라이브러리"
-        right={
-          <Link
-            href="/today"
-            aria-label="오늘 다시 볼 링크"
-            className="flex h-9 w-9 items-center justify-center text-muted-foreground hover:text-foreground"
-          >
-            <Bell className="h-5 w-5" />
-          </Link>
-        }
       />
       <div className="p-4 space-y-3">
         <div className="grid grid-cols-2 gap-3">

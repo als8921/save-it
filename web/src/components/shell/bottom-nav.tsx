@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LibraryBig, Search, Settings } from "lucide-react";
+import { LibraryBig, Sparkles, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Tab = { href: string; label: string; icon: typeof LibraryBig; match: (p: string) => boolean };
@@ -14,7 +14,7 @@ const TABS: Tab[] = [
     icon: LibraryBig,
     match: (p) => p === "/" || p.startsWith("/category") || p.startsWith("/folder"),
   },
-  { href: "/search", label: "검색", icon: Search, match: (p) => p.startsWith("/search") },
+  { href: "/today", label: "오늘", icon: Sparkles, match: (p) => p.startsWith("/today") },
   { href: "/settings", label: "설정", icon: Settings, match: (p) => p.startsWith("/settings") },
 ];
 
