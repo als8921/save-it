@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { pickDailyRemindCandidates } from "@/lib/remind/picker";
-import { sendToSubscription } from "@/lib/push/send";
+import { sendToSubscription, type SubscriptionRow } from "@/lib/push/send";
 
 export async function GET(req: Request) {
   const auth = req.headers.get("authorization");
@@ -58,12 +58,11 @@ export async function GET(req: Request) {
       };
 
       for (const row of subs) {
-        const outcome = await sendToSubscription(supabase, row as {
-          id: string;
-          endpoint: string;
-          p256dh: string;
-          auth: string;
-        }, payload);
+        const outcome = await sendToSubscription(
+          supabase,
+          row as SubscriptionRow,
+          payload
+        );
         if (outcome.delivered) sent++;
         if (outcome.removed) removed++;
       }
