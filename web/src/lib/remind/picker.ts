@@ -90,7 +90,7 @@ async function readRecentBatchLinkIds(
   ).toISOString();
   const { data } = await supabase
     .from("link_reminders")
-    .select("link_id, sent_at")
+    .select("link_id")
     .eq("user_id", userId)
     .eq("mode", REMIND_MODE_DAILY)
     .eq("channel", REMIND_CHANNEL_DASHBOARD)
@@ -141,7 +141,7 @@ async function selectFreshCandidates(
     (fatigueRows ?? []).map((r) => r.link_id as string)
   );
 
-  let query = supabase
+  const query = supabase
     .from("links")
     .select(
       "id, user_id, folder_id, url, title, description, priority, is_read, created_at, read_at, folders ( id, name, para_category )"
@@ -172,7 +172,10 @@ async function recordSent(
     mode: REMIND_MODE_DAILY,
     channel: REMIND_CHANNEL_DASHBOARD,
   }));
-  await supabase.from("link_reminders").insert(rows);
+  const { error } = await supabase.from("link_reminders").insert(rows);
+  if (error) {
+    console.error("[remind] recordSent failed:", error.message);
+  }
 }
 
 export async function pickDailyRemindCandidates(
@@ -188,6 +191,7 @@ export async function pickDailyRemindCandidates(
     const rows = await fetchLinksByIds(supabase, userId, cachedIds);
     return rows
       .map((r) => rowToCandidate(r, now))
+      .filter((c) => c.folder.para_category !== "archive")
       .sort((a, b) => b.score - a.score)
       .slice(0, limit);
   }
