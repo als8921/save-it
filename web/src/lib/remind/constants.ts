@@ -19,5 +19,6 @@ export const REMIND_TTL_HOURS = 4;
 
 export const DEFAULT_MAX_ITEMS = 5;
 
+// Must match DB enums (reminder_mode, reminder_channel) in 00004_reminders.sql.
 export const REMIND_MODE_DAILY = "daily" as const;
 export const REMIND_CHANNEL_DASHBOARD = "dashboard" as const;
