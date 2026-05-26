@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LibraryBig, Search, Settings } from "lucide-react";
+import { LibraryBig, Home, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Tab = { href: string; label: string; icon: typeof LibraryBig; match: (p: string) => boolean };
@@ -14,7 +14,7 @@ const TABS: Tab[] = [
     icon: LibraryBig,
     match: (p) => p === "/" || p.startsWith("/category") || p.startsWith("/folder"),
   },
-  { href: "/search", label: "검색", icon: Search, match: (p) => p.startsWith("/search") },
+  { href: "/today", label: "오늘", icon: Home, match: (p) => p.startsWith("/today") },
   { href: "/settings", label: "설정", icon: Settings, match: (p) => p.startsWith("/settings") },
 ];
 
@@ -36,15 +36,16 @@ export function BottomNav() {
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
+                aria-label={tab.label}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 py-2 text-xs transition-colors",
+                  "flex h-16 items-center justify-center transition-colors",
                   active
-                    ? "text-[var(--color-para-project-fg)] font-semibold"
+                    ? "text-[var(--color-para-project-fg)]"
                     : "text-muted-foreground"
                 )}
               >
-                <Icon className="h-5 w-5" />
-                <span>{tab.label}</span>
+                <Icon className="h-6 w-6" />
+                <span className="sr-only">{tab.label}</span>
               </Link>
             </li>
           );

@@ -39,7 +39,9 @@ export default async function LibraryHome() {
 
   return (
     <>
-      <AppHeader title="라이브러리" />
+      <AppHeader
+        title="라이브러리"
+      />
       <div className="p-4 space-y-3">
         <div className="grid grid-cols-2 gap-3">
           {PARA_ORDER.map((category) => (
