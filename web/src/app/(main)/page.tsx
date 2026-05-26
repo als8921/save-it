@@ -3,6 +3,7 @@ import { AppHeader } from "@/components/shell/app-header";
 import { ParaCard } from "@/components/library/para-card";
 import { UnassignedCard } from "@/components/library/unassigned-card";
 import { QuickAddFab } from "@/components/actions/quick-add-fab";
+import { TodayReminderSection } from "@/components/today/today-reminder-section";
 import { PARA_ORDER } from "@/lib/para";
 import type { Folder } from "@/lib/types";
 
@@ -41,6 +42,7 @@ export default async function LibraryHome() {
     <>
       <AppHeader title="라이브러리" />
       <div className="p-4 space-y-3">
+        <TodayReminderSection />
         <div className="grid grid-cols-2 gap-3">
           {PARA_ORDER.map((category) => (
             <ParaCard
