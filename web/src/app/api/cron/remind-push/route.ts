@@ -4,8 +4,12 @@ import { pickDailyRemindCandidates } from "@/lib/remind/picker";
 import { sendToSubscription, type SubscriptionRow } from "@/lib/push/send";
 
 export async function GET(req: Request) {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) {
+    return NextResponse.json({ error: "misconfigured" }, { status: 500 });
+  }
   const auth = req.headers.get("authorization");
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (auth !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

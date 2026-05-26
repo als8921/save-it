@@ -43,8 +43,9 @@ export async function subscribePush(): Promise<SubscribeResult> {
     return { ok: false, reason: "permission_denied" };
   }
 
-  const reg = await navigator.serviceWorker.register("/sw.js");
-  await navigator.serviceWorker.ready;
+  await navigator.serviceWorker.register("/sw.js");
+  // ready를 await한 결과를 사용해야 reg.active가 null인 race를 피할 수 있음 (iOS Safari).
+  const reg = await navigator.serviceWorker.ready;
 
   let subscription: PushSubscription;
   try {
