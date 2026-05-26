@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/shell/app-header";
 import { SignOutButton } from "@/components/actions/sign-out-button";
+import { PushToggle } from "@/components/settings/push-toggle";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -22,6 +23,8 @@ export default async function SettingsPage() {
           </div>
           <SignOutButton />
         </section>
+
+        <PushToggle />
       </div>
     </>
   );
