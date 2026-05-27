@@ -149,10 +149,10 @@ export default function PrivacyPage() {
         <br />
         이메일:{" "}
         <a
-          href="mailto:aipro2510@gmail.com"
+          href="mailto:alscjf2632@gmail.com"
           className="underline underline-offset-2"
         >
-          aipro2510@gmail.com
+          alscjf2632@gmail.com
         </a>
       </p>
     </main>
