@@ -1,0 +1,19 @@
+name: Hourly Push Reminder
+
+on:
+  schedule:
+    - cron: "0 * * * *" # 매시 정각 (UTC)
+  workflow_dispatch: # GitHub UI에서 수동 트리거 옵션
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call Vercel cron endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -fsS -X GET \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            https://save-it.vercel.app/api/cron/remind-push
