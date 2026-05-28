@@ -16,4 +16,4 @@ jobs:
         run: |
           curl -fsS -X GET \
             -H "Authorization: Bearer $CRON_SECRET" \
-            https://save-it.vercel.app/api/cron/remind-push
+            https://i-save-it.vercel.app/api/cron/remind-push
