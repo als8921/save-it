@@ -15,20 +15,21 @@ export async function GET(req: Request) {
 
   const supabase = createServiceClient();
 
-  // 현재 UTC time 기준 ±30분 윈도우 안의 daily_time을 가진 사용자 select.
+  // 각 사용자의 timezone 기준 현재 시각과 daily_time을 비교 (±30분 윈도우).
   // wraparound (자정 근처) 보정은 v1.5 — 받아들임.
-  const nowUtcTime = new Date().toISOString().slice(11, 19); // HH:MM:SS
+  const now = new Date();
 
   const { data: prefs } = await supabase
     .from("user_reminder_prefs")
-    .select("user_id, daily_time")
+    .select("user_id, daily_time, timezone")
     .eq("daily_enabled", true);
 
   const userIds: string[] = [];
   for (const row of prefs ?? []) {
+    const localNow = formatLocalTime(now, row.timezone as string);
     const diffSec = Math.abs(
       timeStringToSeconds(row.daily_time as string) -
-        timeStringToSeconds(nowUtcTime)
+        timeStringToSeconds(localNow)
     );
     if (diffSec <= 1800) userIds.push(row.user_id as string);
   }
@@ -81,4 +82,14 @@ export async function GET(req: Request) {
 function timeStringToSeconds(t: string): number {
   const [h, m, s] = t.split(":").map((x) => parseInt(x, 10));
   return h * 3600 + m * 60 + (s ?? 0);
+}
+
+function formatLocalTime(d: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(d);
 }
