@@ -4,7 +4,6 @@ import type { Link, Folder, ParaCategory } from "@/lib/types";
 import { calcDailyScore } from "./scoring";
 import {
   REMIND_TTL_HOURS,
-  FATIGUE_WINDOW_DAYS,
   DEFAULT_MAX_ITEMS,
   REMIND_MODE_DAILY,
   REMIND_CHANNEL_DASHBOARD,
@@ -117,7 +116,6 @@ async function fetchLinksByIds(
       "id, user_id, folder_id, url, title, description, priority, is_read, created_at, read_at, folders ( id, name, para_category )"
     )
     .eq("user_id", userId)
-    .eq("is_read", false)
     .in("id", linkIds);
   return (data ?? []) as unknown as JoinedRow[];
 }
@@ -126,35 +124,17 @@ async function selectFreshCandidates(
   supabase: Supabase,
   userId: string
 ): Promise<JoinedRow[]> {
-  const since = new Date(
-    Date.now() - FATIGUE_WINDOW_DAYS * 24 * 60 * 60 * 1000
-  ).toISOString();
-
-  // 최근 7일 내에 sent된 link_id (피로 필터)
-  const { data: fatigueRows } = await supabase
-    .from("link_reminders")
-    .select("link_id")
-    .eq("user_id", userId)
-    .eq("mode", REMIND_MODE_DAILY)
-    .eq("channel", REMIND_CHANNEL_DASHBOARD)
-    .gte("sent_at", since);
-  const excludeIds = new Set<string>(
-    (fatigueRows ?? []).map((r) => r.link_id as string)
-  );
-
   const query = supabase
     .from("links")
     .select(
       "id, user_id, folder_id, url, title, description, priority, is_read, created_at, read_at, folders ( id, name, para_category )"
     )
-    .eq("user_id", userId)
-    .eq("is_read", false);
+    .eq("user_id", userId);
 
   // archive 제외는 클라이언트 사이드 필터 (Supabase 조인 컬럼 비교가 어렵기 때문)
   const { data } = await query;
   const rows = (data ?? []) as unknown as JoinedRow[];
   return rows.filter((r) => {
-    if (excludeIds.has(r.id)) return false;
     const cat = pickFolder(r.folders)?.para_category ?? null;
     if (cat === "archive") return false;
     return true;
