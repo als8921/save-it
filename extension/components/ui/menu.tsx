@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, MoreVertical, X } from "lucide-react";
+import { ChevronLeft, MoreVertical, X } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 export interface KebabMenuItem {
@@ -110,73 +110,74 @@ export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
               top: coords.top,
               bottom: coords.bottom,
               right: coords.right,
-              maxHeight: coords.maxHeight,
+              boxShadow:
+                "0 10px 30px rgba(15, 23, 42, 0.25), 0 2px 8px rgba(15, 23, 42, 0.12)",
             }}
-            className="z-[150] flex min-w-36 max-w-[260px] flex-col overflow-y-auto rounded-lg border border-border bg-[oklch(0.985_0_0)] py-1 shadow-lg"
+            className="relative z-[150] flex min-w-36 max-w-[260px] flex-col overflow-hidden rounded-lg border border-border bg-[oklch(0.985_0_0)]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between gap-1 border-b border-border/60 px-1 py-0.5">
-              {currentLevel ? (
+            {/* 닫기(X) — 우상단, 첫 항목(수정) 우측에 겹쳐 표시 */}
+            <button
+              type="button"
+              aria-label="닫기"
+              onClick={(e) => {
+                e.stopPropagation();
+                close();
+              }}
+              className="absolute right-1.5 top-1.5 z-10 flex h-6 w-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-foreground/[0.06] cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+            <div
+              className="overflow-y-auto py-1"
+              style={{ maxHeight: coords.maxHeight }}
+            >
+              {currentLevel && (
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     setStack((s) => s.slice(0, -1));
                   }}
-                  className="flex items-center gap-1 rounded px-1.5 py-1 text-left text-[11px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.06] cursor-pointer"
+                  className="flex w-full items-center gap-1 border-b border-border/60 px-2.5 py-1.5 pr-8 text-left text-[11px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.06] cursor-pointer"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
                   {currentLevel.label}
                 </button>
-              ) : (
-                <span className="flex-1" />
               )}
-              <button
-                type="button"
-                aria-label="닫기"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  close();
-                }}
-                className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-foreground/[0.06] cursor-pointer"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+              {current.length === 0 ? (
+                <p className="px-3 py-2 text-xs italic text-muted-foreground">
+                  폴더가 없어요
+                </p>
+              ) : (
+                current.map((item, i) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (item.submenu) {
+                        setStack((s) => [
+                          ...s,
+                          { label: item.label, items: item.submenu! },
+                        ]);
+                      } else {
+                        close();
+                        item.onClick?.();
+                      }
+                    }}
+                    className={cn(
+                      "flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-foreground/[0.06] cursor-pointer",
+                      !currentLevel && i === 0 && "pr-8",
+                      item.destructive &&
+                        "text-destructive hover:bg-destructive/10",
+                    )}
+                  >
+                    <span className="flex-1 truncate">{item.label}</span>
+                  </button>
+                ))
+              )}
             </div>
-            {current.length === 0 ? (
-              <p className="px-3 py-2 text-xs italic text-muted-foreground">
-                폴더가 없어요
-              </p>
-            ) : (
-              current.map((item) => (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (item.submenu) {
-                      setStack((s) => [
-                        ...s,
-                        { label: item.label, items: item.submenu! },
-                      ]);
-                    } else {
-                      close();
-                      item.onClick?.();
-                    }
-                  }}
-                  className={cn(
-                    "flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-foreground/[0.06] cursor-pointer",
-                    item.destructive &&
-                      "text-destructive hover:bg-destructive/10",
-                  )}
-                >
-                  <span className="flex-1 truncate">{item.label}</span>
-                  {item.submenu && (
-                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  )}
-                </button>
-              ))
-            )}
           </div>
         </>
       )}
