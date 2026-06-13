@@ -52,7 +52,7 @@ export function AddFolderModal({ category, userId }: AddFolderModalProps) {
         render={
           <button
             type="button"
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed bg-card/50 px-4 py-3 text-sm text-muted-foreground transition-colors hover:bg-accent"
+            className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
             <Plus className="h-4 w-4" />
             새 폴더 만들기
