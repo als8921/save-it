@@ -1,12 +1,13 @@
 import type { ParaCategory } from "./types";
 import { PARA_ORDER, PARA_TOKENS, UNASSIGNED_TOKEN } from "./para";
+import type { ParaParam } from "./para";
+
+export type { ParaParam };
 
 export function folderDeleteMessage(linkCount: number): string {
   if (linkCount === 0) return "이 폴더를 삭제할까요?";
   return `이 폴더와 안에 있는 링크 ${linkCount}개가 함께 삭제됩니다. 삭제할까요?`;
 }
-
-export type ParaParam = ParaCategory | "unassigned";
 
 export interface ParaOption {
   value: ParaParam;
