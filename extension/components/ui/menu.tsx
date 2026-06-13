@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
+import { ChevronLeft, ChevronRight, MoreVertical, X } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 export interface KebabMenuItem {
@@ -115,19 +115,34 @@ export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
             className="z-[150] flex min-w-36 max-w-[260px] flex-col overflow-y-auto rounded-lg border border-border bg-[oklch(0.985_0_0)] py-1 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            {currentLevel && (
+            <div className="flex items-center justify-between gap-1 border-b border-border/60 px-1 py-0.5">
+              {currentLevel ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setStack((s) => s.slice(0, -1));
+                  }}
+                  className="flex items-center gap-1 rounded px-1.5 py-1 text-left text-[11px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.06] cursor-pointer"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                  {currentLevel.label}
+                </button>
+              ) : (
+                <span className="flex-1" />
+              )}
               <button
                 type="button"
+                aria-label="닫기"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setStack((s) => s.slice(0, -1));
+                  close();
                 }}
-                className="flex items-center gap-1 border-b border-border/60 px-2.5 py-1.5 text-left text-[11px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.06] cursor-pointer"
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-foreground/[0.06] cursor-pointer"
               >
-                <ChevronLeft className="h-3.5 w-3.5" />
-                {currentLevel.label}
+                <X className="h-3.5 w-3.5" />
               </button>
-            )}
+            </div>
             {current.length === 0 ? (
               <p className="px-3 py-2 text-xs italic text-muted-foreground">
                 폴더가 없어요

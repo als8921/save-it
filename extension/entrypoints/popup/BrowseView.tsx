@@ -172,31 +172,30 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
       { label: "수정", onClick: () => setEditingLinkId(link.id) },
     ];
 
-    // 폴더 이동: PARA/미지정 그룹 → 그 안의 폴더
-    const groups: { key: ParaCategory | "unassigned"; label: string }[] = [
-      ...PARA_ORDER.map((c) => ({ key: c, label: PARA_TOKENS[c].label })),
-      { key: "unassigned" as const, label: UNASSIGNED_TOKEN.label },
-    ];
-    const moveGroups: KebabMenuItem[] = [];
-    for (const g of groups) {
-      const groupFolders = folders.filter((f) => {
-        const inGroup =
-          g.key === "unassigned"
-            ? f.para_category === null
-            : f.para_category === g.key;
-        return inGroup && f.id !== link.folder_id;
+    // 폴더 이동: 미지정(폴더 없음) + PARA 카테고리별 폴더
+    const moveSubmenu: KebabMenuItem[] = [];
+    // 미지정으로 = 폴더에서 빼기 (이미 미지정이 아니면)
+    if (link.folder_id !== null) {
+      moveSubmenu.push({
+        label: UNASSIGNED_TOKEN.label,
+        onClick: () => updateLink(link.id, { folder_id: null }),
       });
+    }
+    for (const c of PARA_ORDER) {
+      const groupFolders = folders.filter(
+        (f) => f.para_category === c && f.id !== link.folder_id,
+      );
       if (groupFolders.length === 0) continue;
-      moveGroups.push({
-        label: g.label,
+      moveSubmenu.push({
+        label: PARA_TOKENS[c].label,
         submenu: groupFolders.map((f) => ({
           label: f.name,
           onClick: () => updateLink(link.id, { folder_id: f.id }),
         })),
       });
     }
-    if (moveGroups.length > 0) {
-      items.push({ label: "폴더 이동", submenu: moveGroups });
+    if (moveSubmenu.length > 0) {
+      items.push({ label: "폴더 이동", submenu: moveSubmenu });
     }
 
     items.push({
