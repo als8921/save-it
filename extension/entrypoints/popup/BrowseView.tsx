@@ -1,4 +1,4 @@
-import { FolderOpen, FolderPlus, Inbox, Plus, X } from "lucide-react";
+import { FolderOpen, FolderPlus, Globe, Inbox, Plus, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -575,17 +575,16 @@ function LinkRow({
 }) {
   const dots = Math.min(2, priority);
   return (
-    <div
-      className={cn(
-        "group flex w-full items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-accent/60",
-        isRead && "opacity-55",
-      )}
-    >
+    <div className="group flex w-full items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-accent/60">
       <button
         type="button"
         onClick={onClick}
-        className="flex min-w-0 flex-1 items-center gap-2 text-left cursor-pointer"
+        className={cn(
+          "flex min-w-0 flex-1 items-center gap-2 text-left cursor-pointer",
+          isRead && "opacity-55",
+        )}
       >
+        <LinkFavicon host={host} />
         <div className="min-w-0 flex-1">
           <div className="truncate text-xs font-medium">{title}</div>
           <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
@@ -602,6 +601,25 @@ function LinkRow({
       </button>
       {menu}
     </div>
+  );
+}
+
+function LinkFavicon({ host }: { host: string }) {
+  const [error, setError] = useState(false);
+  if (!host || error) {
+    return <Globe className="h-4 w-4 shrink-0 text-muted-foreground" />;
+  }
+  return (
+    <img
+      src={`https://www.google.com/s2/favicons?domain=${host}&sz=32`}
+      alt=""
+      width={16}
+      height={16}
+      loading="lazy"
+      referrerPolicy="no-referrer"
+      className="h-4 w-4 shrink-0 rounded-sm"
+      onError={() => setError(true)}
+    />
   );
 }
 
