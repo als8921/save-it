@@ -502,7 +502,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
                       </div>
                     )}
                     {isOpen && (
-                      <div className="mb-1 ml-[20px] mt-0.5 border-l border-border/60 pl-2">
+                      <div className="mb-1 mt-0.5 pl-3">
                         {folderLinks.length === 0 ? (
                           <p className="px-2 py-1.5 text-[11px] italic text-muted-foreground">
                             비어있음
