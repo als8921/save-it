@@ -31,6 +31,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
+  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
 
   const [filter, setFilter] = useSyncedState<ParaFilter | null>(
     "saveit_browse_filter",
@@ -123,6 +124,56 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
       setLinks(prev);
       setError(error.message);
     }
+  }
+
+  async function updateFolder(
+    id: string,
+    patch: { name?: string; para_category?: ParaCategory | null },
+  ) {
+    const { data, error } = await supabase
+      .from("folders")
+      .update(patch)
+      .eq("id", id)
+      .select("*")
+      .single();
+    if (error) {
+      setError(
+        error.code === "23505" ? "이미 같은 이름의 폴더가 있어요" : error.message,
+      );
+      return false;
+    }
+    setFolders((cur) => cur.map((f) => (f.id === id ? (data as Folder) : f)));
+    return true;
+  }
+
+  async function deleteFolder(id: string) {
+    const prevFolders = folders;
+    const prevLinks = links;
+    setFolders((cur) => cur.filter((f) => f.id !== id));
+    setLinks((cur) => cur.filter((l) => l.folder_id !== id));
+    const { error } = await supabase.from("folders").delete().eq("id", id);
+    if (error) {
+      setFolders(prevFolders);
+      setLinks(prevLinks);
+      setError(error.message);
+    }
+  }
+
+  function folderMenuItems(folder: Folder, linkCount: number): KebabMenuItem[] {
+    return [
+      { label: "수정", onClick: () => setEditingFolderId(folder.id) },
+      {
+        label: "삭제",
+        destructive: true,
+        onClick: () => {
+          const msg =
+            linkCount === 0
+              ? "이 폴더를 삭제할까요?"
+              : `이 폴더와 링크 ${linkCount}개가 함께 삭제됩니다. 삭제할까요?`;
+          if (confirm(msg)) deleteFolder(folder.id);
+        },
+      },
+    ];
   }
 
   function linkMenuItems(link: Link): KebabMenuItem[] {
@@ -387,42 +438,59 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
                     key={folder.id}
                     className="overflow-hidden rounded-xl border bg-card"
                   >
-                    <div className="group flex items-stretch">
-                      <button
-                        type="button"
-                        onClick={() => toggleFolder(folder.id)}
-                        aria-expanded={isOpen}
-                        className="flex flex-1 items-center gap-2 px-3 py-2.5 text-left transition-colors active:bg-accent cursor-pointer"
-                      >
-                        {isOpen ? (
-                          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                        ) : (
-                          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                        )}
-                        {isUnassigned ? (
-                          <Inbox className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                        ) : (
-                          <FolderOpen className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                        )}
-                        <span className="flex-1 truncate text-xs font-medium">
-                          {folder.name}
-                        </span>
-                        <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
-                          {folderLinks.length}
-                        </span>
-                      </button>
-                      {onAddLinkToFolder && (
+                    {editingFolderId === folder.id ? (
+                      <FolderEditForm
+                        folder={folder}
+                        onCancel={() => setEditingFolderId(null)}
+                        onSave={async (patch) => {
+                          const ok = await updateFolder(folder.id, patch);
+                          if (ok) setEditingFolderId(null);
+                        }}
+                      />
+                    ) : (
+                      <div className="group flex items-stretch">
                         <button
                           type="button"
-                          onClick={() => onAddLinkToFolder(folder.id)}
-                          aria-label={`${folder.name}에 링크 추가`}
-                          title="이 폴더에 링크 추가"
-                          className="flex w-8 items-center justify-center border-l text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:text-foreground active:bg-accent cursor-pointer"
+                          onClick={() => toggleFolder(folder.id)}
+                          aria-expanded={isOpen}
+                          className="flex flex-1 items-center gap-2 px-3 py-2.5 text-left transition-colors active:bg-accent cursor-pointer"
                         >
-                          <Plus className="h-3.5 w-3.5" />
+                          {isOpen ? (
+                            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                          ) : (
+                            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                          )}
+                          {isUnassigned ? (
+                            <Inbox className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                          ) : (
+                            <FolderOpen className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                          )}
+                          <span className="flex-1 truncate text-xs font-medium">
+                            {folder.name}
+                          </span>
+                          <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
+                            {folderLinks.length}
+                          </span>
                         </button>
-                      )}
-                    </div>
+                        {onAddLinkToFolder && (
+                          <button
+                            type="button"
+                            onClick={() => onAddLinkToFolder(folder.id)}
+                            aria-label={`${folder.name}에 링크 추가`}
+                            title="이 폴더에 링크 추가"
+                            className="flex w-8 items-center justify-center border-l text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:text-foreground active:bg-accent cursor-pointer"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                        <div className="flex items-center border-l px-0.5">
+                          <KebabMenu
+                            items={folderMenuItems(folder, folderLinks.length)}
+                            label="폴더 메뉴"
+                          />
+                        </div>
+                      </div>
+                    )}
                     {isOpen && (
                       <div className="border-t bg-background/40 p-1.5">
                         {folderLinks.length === 0 ? (
@@ -565,6 +633,72 @@ function LinkEditForm({
           className="flex-1"
           onClick={() =>
             onSave({ title: title.trim() || link.url, description: link.description, priority })
+          }
+        >
+          저장
+        </Button>
+        <Button type="button" size="sm" variant="outline" onClick={onCancel}>
+          취소
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function FolderEditForm({
+  folder,
+  onSave,
+  onCancel,
+}: {
+  folder: Folder;
+  onSave: (patch: { name: string; para_category: ParaCategory | null }) => void;
+  onCancel: () => void;
+}) {
+  const [name, setName] = useState(folder.name);
+  const [para, setPara] = useState<ParaCategory | "unassigned">(
+    folder.para_category ?? "unassigned",
+  );
+  const options: { value: ParaCategory | "unassigned"; label: string }[] = [
+    ...PARA_ORDER.map((c) => ({ value: c, label: PARA_TOKENS[c].label })),
+    { value: "unassigned", label: "미지정" },
+  ];
+  return (
+    <div className="space-y-2 p-2">
+      <Input
+        autoFocus
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="폴더 이름"
+        className="h-8 text-xs"
+      />
+      <div className="grid grid-cols-3 gap-1">
+        {options.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => setPara(opt.value)}
+            className={cn(
+              "rounded border py-1 text-[10px]",
+              para === opt.value
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-card",
+            )}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+      <div className="flex gap-1">
+        <Button
+          type="button"
+          size="sm"
+          className="flex-1"
+          disabled={!name.trim()}
+          onClick={() =>
+            onSave({
+              name: name.trim(),
+              para_category: para === "unassigned" ? null : para,
+            })
           }
         >
           저장
