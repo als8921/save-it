@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, MoreVertical } from "lucide-react";
+import { ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 export interface KebabMenuItem {
@@ -14,18 +14,22 @@ interface KebabMenuProps {
   label?: string;
 }
 
+interface Level {
+  label: string;
+  items: KebabMenuItem[];
+}
+
 export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
   const [open, setOpen] = useState(false);
-  const [sub, setSub] = useState<{ label: string; items: KebabMenuItem[] } | null>(
-    null,
-  );
+  const [stack, setStack] = useState<Level[]>([]);
 
   function close() {
     setOpen(false);
-    setSub(null);
+    setStack([]);
   }
 
-  const current = sub ? sub.items : items;
+  const currentLevel = stack[stack.length - 1];
+  const current = currentLevel ? currentLevel.items : items;
 
   return (
     <div className="relative">
@@ -34,7 +38,7 @@ export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
         aria-label={label}
         onClick={(e) => {
           e.stopPropagation();
-          setSub(null);
+          setStack([]);
           setOpen((v) => !v);
         }}
         className={cn(
@@ -55,25 +59,25 @@ export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
             }}
           />
           <div
-            className="absolute right-0 top-full z-[150] mt-1 max-h-60 min-w-32 overflow-y-auto rounded-lg border bg-card py-1 shadow-lg"
+            className="absolute right-0 top-full z-[150] mt-1 flex max-h-60 min-w-36 flex-col overflow-y-auto rounded-lg border border-border bg-muted py-1 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            {sub && (
+            {currentLevel && (
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSub(null);
+                  setStack((s) => s.slice(0, -1));
                 }}
-                className="flex w-full items-center gap-1 px-2.5 py-1.5 text-left text-[11px] text-muted-foreground transition-colors hover:bg-accent cursor-pointer"
+                className="flex items-center gap-1 border-b border-border/60 px-2.5 py-1.5 text-left text-[11px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.06] cursor-pointer"
               >
-                <ChevronLeft className="h-3 w-3" />
-                {sub.label}
+                <ChevronLeft className="h-3.5 w-3.5" />
+                {currentLevel.label}
               </button>
             )}
             {current.length === 0 ? (
               <p className="px-3 py-2 text-xs italic text-muted-foreground">
-                이동할 폴더가 없어요
+                폴더가 없어요
               </p>
             ) : (
               current.map((item) => (
@@ -83,19 +87,25 @@ export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
                   onClick={(e) => {
                     e.stopPropagation();
                     if (item.submenu) {
-                      setSub({ label: item.label, items: item.submenu });
+                      setStack((s) => [
+                        ...s,
+                        { label: item.label, items: item.submenu! },
+                      ]);
                     } else {
                       close();
                       item.onClick?.();
                     }
                   }}
                   className={cn(
-                    "block w-full truncate px-3 py-2 text-left text-sm transition-colors hover:bg-accent cursor-pointer",
+                    "flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-foreground/[0.06] cursor-pointer",
                     item.destructive &&
                       "text-destructive hover:bg-destructive/10",
                   )}
                 >
-                  {item.label}
+                  <span className="flex-1 truncate">{item.label}</span>
+                  {item.submenu && (
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  )}
                 </button>
               ))
             )}
