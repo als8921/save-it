@@ -172,15 +172,8 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
       { label: "수정", onClick: () => setEditingLinkId(link.id) },
     ];
 
-    // 폴더 이동: 미지정(폴더 없음) + PARA 카테고리별 폴더
+    // 폴더 이동: PARA 카테고리별 폴더 + 미지정 영역(폴더 없음). 필터 칩과 같은 순서.
     const moveSubmenu: KebabMenuItem[] = [];
-    // 미지정으로 = 폴더에서 빼기 (이미 미지정이 아니면)
-    if (link.folder_id !== null) {
-      moveSubmenu.push({
-        label: UNASSIGNED_TOKEN.label,
-        onClick: () => updateLink(link.id, { folder_id: null }),
-      });
-    }
     for (const c of PARA_ORDER) {
       const groupFolders = folders.filter(
         (f) => f.para_category === c && f.id !== link.folder_id,
@@ -192,6 +185,13 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
           label: f.name,
           onClick: () => updateLink(link.id, { folder_id: f.id }),
         })),
+      });
+    }
+    // 미지정 영역으로 = 폴더에서 빼기 (이미 미지정이 아니면)
+    if (link.folder_id !== null) {
+      moveSubmenu.push({
+        label: UNASSIGNED_TOKEN.label,
+        onClick: () => updateLink(link.id, { folder_id: null }),
       });
     }
     if (moveSubmenu.length > 0) {
