@@ -203,6 +203,7 @@ function FloatingPanel({ onSaved }: { onSaved: () => void }) {
 
   return (
     <div
+      data-menu-boundary
       className="w-[360px] overflow-hidden rounded-2xl border border-border bg-background text-foreground animate-fade-up"
       style={{
         boxShadow:

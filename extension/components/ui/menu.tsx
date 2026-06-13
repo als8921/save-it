@@ -48,15 +48,23 @@ export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
     const root = el.getRootNode();
     // content script는 shadow root, 팝업은 document.body로 포털 (overflow 탈출 + 스타일 유지)
     setContainer(root instanceof ShadowRoot ? root : document.body);
+    // 플립 기준은 viewport가 아니라 위젯 패널(경계). 패널 밖으로 흘러내리지 않게.
+    const boundary = el.closest("[data-menu-boundary]");
+    const brect = boundary
+      ? boundary.getBoundingClientRect()
+      : ({ top: 0, bottom: window.innerHeight } as DOMRect);
     const margin = 8;
-    const spaceBelow = window.innerHeight - rect.bottom - margin;
-    const spaceAbove = rect.top - margin;
-    const openUp = spaceBelow < 220 && spaceAbove > spaceBelow;
+    const spaceBelow = brect.bottom - rect.bottom - margin;
+    const spaceAbove = rect.top - brect.top - margin;
+    const openUp = spaceBelow < 180 && spaceAbove > spaceBelow;
     setCoords({
       right: Math.max(margin, window.innerWidth - rect.right),
       ...(openUp
-        ? { bottom: window.innerHeight - rect.top + 4, maxHeight: spaceAbove }
-        : { top: rect.bottom + 4, maxHeight: spaceBelow }),
+        ? {
+            bottom: window.innerHeight - rect.top + 4,
+            maxHeight: Math.max(96, spaceAbove),
+          }
+        : { top: rect.bottom + 4, maxHeight: Math.max(96, spaceBelow) }),
     });
     setStack([]);
     setOpen(true);
