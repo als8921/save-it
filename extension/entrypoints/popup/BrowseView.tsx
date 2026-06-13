@@ -173,23 +173,29 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
       ...folders.map((f) => ({ id: f.id as string | null, name: f.name })),
     ].filter((t) => t.id !== (link.folder_id ?? null));
 
-    return [
+    const items: KebabMenuItem[] = [
       { label: "수정", onClick: () => setEditingLinkId(link.id) },
-      ...moveTargets.map((t) => ({
-        label: `→ ${t.name}`,
-        onClick: () => updateLink(link.id, { folder_id: t.id }),
-      })),
-      {
-        label: "삭제",
-        destructive: true,
-        onClick: () => {
-          setConfirmState({
-            message: "이 링크를 삭제할까요?",
-            onConfirm: () => deleteLink(link.id),
-          });
-        },
-      },
     ];
+    if (moveTargets.length > 0) {
+      items.push({
+        label: "폴더 이동",
+        submenu: moveTargets.map((t) => ({
+          label: t.name,
+          onClick: () => updateLink(link.id, { folder_id: t.id }),
+        })),
+      });
+    }
+    items.push({
+      label: "삭제",
+      destructive: true,
+      onClick: () => {
+        setConfirmState({
+          message: "이 링크를 삭제할까요?",
+          onConfirm: () => deleteLink(link.id),
+        });
+      },
+    });
+    return items;
   }
 
   function host(url: string) {
