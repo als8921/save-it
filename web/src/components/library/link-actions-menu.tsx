@@ -71,15 +71,21 @@ export function LinkActionsMenu({ link }: LinkActionsMenuProps) {
         </Menu.Portal>
       </Menu.Root>
 
-      <EditLinkModal open={editOpen} onOpenChange={setEditOpen} link={link} />
-      <MoveLinkModal open={moveOpen} onOpenChange={setMoveOpen} link={link} />
-      <ConfirmDeleteDialog
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        title="링크 삭제"
-        message="이 링크를 삭제할까요?"
-        onConfirm={handleDelete}
-      />
+      {editOpen && (
+        <EditLinkModal open={editOpen} onOpenChange={setEditOpen} link={link} />
+      )}
+      {moveOpen && (
+        <MoveLinkModal open={moveOpen} onOpenChange={setMoveOpen} link={link} />
+      )}
+      {deleteOpen && (
+        <ConfirmDeleteDialog
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          title="링크 삭제"
+          message="이 링크를 삭제할까요?"
+          onConfirm={handleDelete}
+        />
+      )}
     </>
   );
 }

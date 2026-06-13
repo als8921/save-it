@@ -20,12 +20,16 @@ export function ConfirmDeleteDialog({
   onConfirm,
 }: ConfirmDeleteDialogProps) {
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleConfirm() {
     setBusy(true);
+    setError("");
     try {
       await onConfirm();
       onOpenChange(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "삭제에 실패했어요");
     } finally {
       setBusy(false);
     }
@@ -42,6 +46,11 @@ export function ConfirmDeleteDialog({
           <AlertDialog.Description className="mt-2 text-sm text-muted-foreground">
             {message}
           </AlertDialog.Description>
+          {error && (
+            <p className="mt-3 border-l-2 border-destructive pl-2 text-xs text-destructive">
+              {error}
+            </p>
+          )}
           <div className="mt-5 flex justify-end gap-2">
             <AlertDialog.Close
               render={<Button variant="outline" disabled={busy} />}

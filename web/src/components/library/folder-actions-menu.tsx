@@ -72,14 +72,18 @@ export function FolderActionsMenu({
         </Menu.Portal>
       </Menu.Root>
 
-      <EditFolderModal open={editOpen} onOpenChange={setEditOpen} folder={folder} />
-      <ConfirmDeleteDialog
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        title="폴더 삭제"
-        message={folderDeleteMessage(linkCount)}
-        onConfirm={handleDelete}
-      />
+      {editOpen && (
+        <EditFolderModal open={editOpen} onOpenChange={setEditOpen} folder={folder} />
+      )}
+      {deleteOpen && (
+        <ConfirmDeleteDialog
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          title="폴더 삭제"
+          message={folderDeleteMessage(linkCount)}
+          onConfirm={handleDelete}
+        />
+      )}
     </>
   );
 }
