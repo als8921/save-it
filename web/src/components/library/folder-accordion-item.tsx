@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { ArrowUpRight, FolderOpen } from "lucide-react";
+import { FolderOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LinkCard } from "./link-card";
 import { FolderActionsMenu } from "./folder-actions-menu";
@@ -11,10 +9,16 @@ import type { Folder, Link as LinkRow } from "@/lib/types";
 interface FolderAccordionItemProps {
   folder: Folder;
   links: LinkRow[];
+  expanded: boolean;
+  onToggle: () => void;
 }
 
-export function FolderAccordionItem({ folder, links }: FolderAccordionItemProps) {
-  const [expanded, setExpanded] = useState(false);
+export function FolderAccordionItem({
+  folder,
+  links,
+  expanded,
+  onToggle,
+}: FolderAccordionItemProps) {
   const { id, name } = folder;
 
   return (
@@ -27,7 +31,7 @@ export function FolderAccordionItem({ folder, links }: FolderAccordionItemProps)
       >
         <button
           type="button"
-          onClick={() => setExpanded((v) => !v)}
+          onClick={onToggle}
           aria-expanded={expanded}
           aria-controls={`folder-${id}-content`}
           className="flex flex-1 items-center gap-2.5 px-3 py-2.5 text-left"
@@ -35,14 +39,6 @@ export function FolderAccordionItem({ folder, links }: FolderAccordionItemProps)
           <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
           <span className="flex-1 truncate text-sm font-medium">{name}</span>
         </button>
-        <Link
-          href={`/folder/${id}`}
-          aria-label={`${name} 폴더 페이지 열기`}
-          title="폴더 페이지에서 관리"
-          className="flex w-9 items-center justify-center text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:text-foreground"
-        >
-          <ArrowUpRight className="h-4 w-4" />
-        </Link>
         <div className="flex items-center pr-0.5">
           <FolderActionsMenu folder={folder} linkCount={links.length} />
         </div>

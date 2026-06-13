@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/shell/app-header";
 import { BackButton } from "@/components/shell/back-button";
-import { FolderAccordionItem } from "@/components/library/folder-accordion-item";
+import { FolderAccordionList } from "@/components/library/folder-accordion-list";
 import { LinkCard } from "@/components/library/link-card";
 import { AddFolderModal } from "@/components/actions/add-folder-modal";
 import { QuickAddFab } from "@/components/actions/quick-add-fab";
@@ -87,13 +87,12 @@ export default async function CategoryPage({
             아직 폴더가 없어요
           </p>
         ) : (
-          folders.map((f) => (
-            <FolderAccordionItem
-              key={f.id}
-              folder={f}
-              links={linksByFolder.get(f.id) ?? []}
-            />
-          ))
+          <FolderAccordionList
+            items={folders.map((f) => ({
+              folder: f,
+              links: linksByFolder.get(f.id) ?? [],
+            }))}
+          />
         )}
         <AddFolderModal category={para} userId={user.id} />
       </div>
