@@ -59,7 +59,7 @@ export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
             }}
           />
           <div
-            className="absolute right-0 top-full z-[150] mt-1 flex max-h-60 min-w-36 flex-col overflow-y-auto rounded-lg border border-border bg-muted py-1 shadow-lg"
+            className="absolute right-0 top-full z-[150] mt-1 flex max-h-60 min-w-36 flex-col overflow-y-auto rounded-lg border border-border bg-[oklch(0.985_0_0)] py-1 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
             {currentLevel && (
