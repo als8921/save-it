@@ -285,8 +285,8 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
               onClick={() => setFilter(active ? null : opt.key)}
               title={opt.label}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 rounded-lg border py-1.5 transition-colors cursor-pointer",
-                active ? "border-transparent" : "border-border bg-card hover:bg-accent",
+                "flex flex-col items-center justify-center gap-0.5 rounded-lg border border-transparent py-1.5 transition-colors cursor-pointer",
+                active ? "" : "bg-muted/50 hover:bg-accent",
               )}
               style={
                 active
@@ -317,7 +317,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
       {/* New folder shortcut — only when filtering by a real PARA category (not 미지정) */}
       {filter && filter !== "unassigned" &&
         (showNewFolder ? (
-          <div className="space-y-2 rounded-xl border bg-card/60 p-2.5">
+          <div className="space-y-2 rounded-lg bg-muted/40 p-2.5">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-medium">새 폴더</span>
               <span className="text-[10px] text-muted-foreground">
@@ -364,7 +364,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
           <button
             type="button"
             onClick={openNewFolder}
-            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed bg-card/40 py-2 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
+            className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
           >
             <FolderPlus className="h-3 w-3" />
             <span>
@@ -397,7 +397,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
                 저장된 링크가 없어요
               </p>
             ) : (
-              <ul className="space-y-1">
+              <ul className="space-y-0.5">
                 {unassignedLinks.map((link) => (
                   <li key={link.id}>
                     {editingLinkId === link.id ? (
@@ -434,7 +434,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
               폴더가 없어요
             </p>
           ) : (
-            <ul className="space-y-1.5">
+            <ul className="space-y-0.5">
               {visibleFolders.map((folder) => {
                 const folderLinks = links.filter(
                   (l) => l.folder_id === folder.id,
@@ -442,10 +442,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
                 const isOpen = expanded.has(folder.id);
                 const isUnassigned = folder.para_category === null;
                 return (
-                  <li
-                    key={folder.id}
-                    className="overflow-hidden rounded-xl border bg-card"
-                  >
+                  <li key={folder.id}>
                     {editingFolderId === folder.id ? (
                       <FolderEditForm
                         folder={folder}
@@ -456,12 +453,12 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
                         }}
                       />
                     ) : (
-                      <div className="group flex items-stretch">
+                      <div className="group flex items-stretch rounded-md transition-colors hover:bg-accent/50">
                         <button
                           type="button"
                           onClick={() => toggleFolder(folder.id)}
                           aria-expanded={isOpen}
-                          className="flex flex-1 items-center gap-2 px-3 py-2.5 text-left transition-colors active:bg-accent cursor-pointer"
+                          className="flex flex-1 items-center gap-2 px-2 py-2 text-left cursor-pointer"
                         >
                           {isOpen ? (
                             <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -486,12 +483,12 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
                             onClick={() => onAddLinkToFolder(folder.id)}
                             aria-label={`${folder.name}에 링크 추가`}
                             title="이 폴더에 링크 추가"
-                            className="flex w-8 items-center justify-center border-l text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:text-foreground active:bg-accent cursor-pointer"
+                            className="flex w-8 items-center justify-center text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:text-foreground cursor-pointer"
                           >
                             <Plus className="h-3.5 w-3.5" />
                           </button>
                         )}
-                        <div className="flex items-center border-l px-0.5">
+                        <div className="flex items-center px-0.5">
                           <KebabMenu
                             items={folderMenuItems(folder, folderLinks.length)}
                             label="폴더 메뉴"
@@ -500,13 +497,13 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
                       </div>
                     )}
                     {isOpen && (
-                      <div className="border-t bg-background/40 p-1.5">
+                      <div className="mb-1 ml-[15px] border-l border-border/60 pl-1.5">
                         {folderLinks.length === 0 ? (
                           <p className="px-2 py-1.5 text-[11px] italic text-muted-foreground">
                             비어있음
                           </p>
                         ) : (
-                          <ul className="space-y-1">
+                          <ul className="space-y-0.5">
                             {folderLinks.map((link) => (
                               <li key={link.id}>
                                 {editingLinkId === link.id ? (
@@ -574,8 +571,8 @@ function LinkRow({
   return (
     <div
       className={cn(
-        "group flex w-full items-center gap-2 rounded-lg border bg-card px-2.5 py-2 transition-colors",
-        isRead && "opacity-70",
+        "group flex w-full items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-accent/60",
+        isRead && "opacity-55",
       )}
     >
       <button
