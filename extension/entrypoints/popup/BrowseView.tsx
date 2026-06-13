@@ -12,6 +12,7 @@ import type { ReactNode } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { KebabMenu, type KebabMenuItem } from "../../components/ui/menu";
+import { ConfirmDialog } from "../../components/ui/confirm-dialog";
 import { cn } from "../../lib/utils";
 import { supabase } from "../../lib/supabase";
 import { useSyncedState } from "../../lib/useSyncedState";
@@ -31,6 +32,10 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
+  const [confirmState, setConfirmState] = useState<{
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
 
   const [filter, setFilter] = useSyncedState<ParaFilter | null>(
@@ -170,7 +175,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
             linkCount === 0
               ? "이 폴더를 삭제할까요?"
               : `이 폴더와 링크 ${linkCount}개가 함께 삭제됩니다. 삭제할까요?`;
-          if (confirm(msg)) deleteFolder(folder.id);
+          setConfirmState({ message: msg, onConfirm: () => deleteFolder(folder.id) });
         },
       },
     ];
@@ -192,7 +197,10 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
         label: "삭제",
         destructive: true,
         onClick: () => {
-          if (confirm("이 링크를 삭제할까요?")) deleteLink(link.id);
+          setConfirmState({
+            message: "이 링크를 삭제할까요?",
+            onConfirm: () => deleteLink(link.id),
+          });
         },
       },
     ];
@@ -533,6 +541,16 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmState !== null}
+        message={confirmState?.message ?? ""}
+        onCancel={() => setConfirmState(null)}
+        onConfirm={() => {
+          confirmState?.onConfirm();
+          setConfirmState(null);
+        }}
+      />
     </div>
   );
 }
