@@ -2,37 +2,119 @@
 
 > 저장만 되고 잊혀지는 링크를, **다시 보게** 만드는 서비스
 
-기존 북마크가 "저장"에 초점을 둔다면, **Save It**은 "재사용(다시 보기)"에 초점을 둡니다.
-[PARA](https://fortelabs.com/blog/para/) 구조로 링크를 정리하고, 미열람·중요도·최근 저장 기준으로 **상황에 맞게 다시 노출**합니다.
+북마크는 "저장"에서 끝납니다. 저장하는 순간 안심하지만, 그 링크를 다시 여는 일은 거의 없습니다.
+**Save It**은 정반대의 질문에서 출발합니다 — *어떻게 하면 저장한 링크를 다시 보게 만들 수 있을까?*
 
-웹앱(PWA)과 크롬 익스텐션에서 모두 사용할 수 있습니다.
-
----
-
-## ✨ 주요 기능
-
-- **링크 저장** — 현재 탭/클립보드 URL을 빠르게 저장, 페이지 제목 자동 추출
-- **PARA 분류** — Projects / Areas / Resources / Archives + 미지정
-- **폴더 관리** — 폴더 생성·이름변경·이동·삭제, 링크 수정·이동·삭제
-- **다시 보기 리마인드** — 매시 정각 cron으로 점수화된 후보를 **웹 푸시 알림**으로 재노출
-- **크롬 익스텐션** — 페이지 위 플로팅 위젯 + 팝업에서 바로 저장/탐색 (전체화면 시 자동 숨김)
-
-### PARA 구조
-
-| 분류 | 설명 | 예시 |
-|------|------|------|
-| **Projects** | 현재 진행 중 작업 | 과제, 업무 |
-| **Areas** | 지속적 관심 분야 | 개발, 운동 |
-| **Resources** | 참고 자료 | 나중에 볼 영상 |
-| **Archives** | 완료/비활성 | 끝난 프로젝트 |
+[PARA](https://fortelabs.com/blog/para/) 구조로 링크를 정리하고, 미열람·중요도·저장 후 경과 시간을 점수로 환산해
+**적절한 시점에 적절한 링크를 사용자 앞으로 다시 꺼내줍니다.** 웹앱(PWA)과 크롬 익스텐션 어디서나 쓸 수 있습니다.
 
 ---
 
-## 🧱 기술 스택
+## 어떤 문제를 푸나
+
+| 문제 | Save It의 답 |
+|------|--------------|
+| 저장 후 망각 — "나중에 보려고" 저장했지만 다시 안 봄 | 시스템이 먼저 **다시 꺼내줌**(오늘 다시 볼 링크 · 푸시 알림) |
+| 링크 과다로 원하는 걸 못 찾음 | **PARA 4분류 + 폴더**로 행동 중심 정리 |
+| 중요한 자료와 단순 참고가 뒤섞임 | **중요도(우선순위)** 로 노출 가중치 차등 |
+| 정리에 손이 많이 가서 결국 방치 | 저장은 **한 번의 동작**, 분류는 단순한 4칸 |
+
+---
+
+## 핵심 아이디어 — 저장이 아니라 "다시 보기"
+
+일반 북마크와의 차이는 **재노출**에 있습니다. 사용자가 직접 목록을 열어야만 링크를 다시 보는 구조라면
+기존 북마크와 다를 게 없습니다. 그래서 Save It에서 PARA는 단순한 폴더가 아니라
+**"얼마나 자주 다시 보여줄지"를 결정하는 기준**으로 쓰입니다.
+
+- 진행 중인 **Projects**는 자주, 강하게 다시 노출
+- 지속 관심사인 **Areas**는 가끔
+- "나중에"인 **Resources**는 시간이 지난 뒤 한 번
+- 끝난 **Archives**는 리마인드에서 제외 (검색으로만 접근)
+
+---
+
+## 주요 기능
+
+### 📥 빠른 링크 저장
+현재 탭 또는 클립보드의 URL을 한 번에 저장합니다. 페이지 제목은 자동으로 추출되고,
+저장하면서 바로 PARA 폴더와 중요도를 지정할 수 있습니다.
+
+### 🗂 PARA 분류 & 폴더 관리
+Projects / Areas / Resources / Archives + 미지정의 5칸 구조. 폴더를 만들고 이름 변경·이동·삭제할 수 있으며,
+링크도 폴더 간 이동·수정·삭제가 자유롭습니다. 라이브러리 화면에서 분류별 폴더/링크 수를 한눈에 봅니다.
+
+### ☀️ 오늘 — 다시 볼 링크
+하루치 "다시 볼 링크"를 점수 순으로 골라 보여주는 화면입니다.
+미열람 여부·중요도·PARA·저장 후 경과일을 합산한 점수로 후보를 선별하고, **PARA 카테고리별로 묶어** 보여줍니다.
+같은 묶음을 하루 동안 유지해(캐싱) 새로고침해도 목록이 출렁이지 않습니다.
+
+### 🔔 리마인드 푸시 알림
+웹 푸시(VAPID)로 매일 정해진 시각에 "다시 볼 링크"를 알려줍니다.
+사용자별 타임존·발송 시각·한 번에 보낼 개수를 설정으로 조절할 수 있고, 설정 화면에서 토글 한 번으로 켜고 끕니다.
+같은 링크를 너무 자주 보내지 않도록 리마인드 이력을 추적해 **피로를 방지**합니다.
+
+### 🔍 검색
+제목·설명·URL을 가로질러 저장한 링크를 빠르게 찾습니다. 결과에는 PARA 배지와 소속 폴더가 함께 표시됩니다.
+
+### 🧩 크롬 익스텐션
+페이지 위에 떠 있는 플로팅 위젯과 팝업에서 현재 페이지를 바로 저장하고 탐색합니다.
+(전체화면 모드에서는 위젯이 자동으로 숨겨집니다.)
+
+### 📱 PWA
+홈 화면에 추가해 앱처럼 사용할 수 있고, 모바일에서도 푸시 알림을 받을 수 있습니다(iOS는 홈 화면 추가 후).
+
+---
+
+## PARA 구조
+
+| 분류 | 의미 | 리마인드 성격 | 예시 |
+|------|------|---------------|------|
+| **Projects** | 현재 진행 중 작업 | 자주 · 우선순위 최상 | 과제, 업무 |
+| **Areas** | 지속적 관심 분야 | 중간 · 가끔 샘플링 | 개발, 운동 |
+| **Resources** | 참고 자료 | 약하게 · 시간 지난 뒤 | 나중에 볼 영상 |
+| **Archives** | 완료/비활성 | 제외 (검색 전용) | 끝난 프로젝트 |
+| **미지정** | 기본 보관함 | Resources와 동일 | 분류 전 링크 |
+
+---
+
+## "다시 보기"는 어떻게 동작하나
+
+후보 선정은 단일 규칙이 아니라 **가중치 합산 점수**입니다. 점수가 높은 상위 N개만 그날의 후보로 올립니다.
+
+```
+점수 = 미열람 여부
+     + 중요도(우선순위)
+     + PARA 카테고리 가중치
+     + 저장 후 경과일 기반 가중치
+     − 최근에 이미 리마인드했으면 감점(피로 방지)
+```
+
+- 저장 직후엔 바로 띄우지 않고, 며칠 지난 "다시 볼 만한" 시점에서 점수가 높아지도록 설계됩니다.
+- **Archives**는 점수 계산에서 빠집니다.
+- 보낸 이력(`link_reminders`)을 근거로 같은 링크의 반복 노출을 억제합니다.
+
+> 점수 전략의 자세한 설계는 [`docs/REMIND_STRATEGY.md`](docs/REMIND_STRATEGY.md)에 정리돼 있습니다.
+
+---
+
+## 어떻게 연결되나
+
+```
+웹앱 / 익스텐션  →  Supabase        (브라우저에서 직접 호출, RLS로 보호)
+GitHub Cron     →  Vercel API Route →  web-push  →  사용자 (리마인드 알림)
+```
+
+- 매시 정각 GitHub Actions cron이 Vercel 엔드포인트를 깨우고, 사용자별 타임존·발송 시각이 맞을 때만 알림을 보냅니다.
+- 링크 데이터는 웹앱과 익스텐션이 Supabase를 직접 호출해 다루며, 행 단위 보안(RLS)으로 본인 데이터만 접근합니다.
+
+---
+
+## 기술 스택
 
 | 영역 | 스택 |
 |------|------|
-| 웹앱 | Next.js 16 (App Router, Turbopack), React 19, Tailwind CSS 4 |
+| 웹앱 | Next.js 16 (App Router), React 19, Tailwind CSS 4 |
 | 익스텐션 | WXT + React 19 (Vite 기반) |
 | DB / Auth | Supabase (Postgres + Auth, RLS) |
 | 푸시 | web-push (VAPID), GitHub Actions cron |
@@ -40,118 +122,9 @@
 
 ---
 
-## 📂 프로젝트 구조
+## 더 알아보기
 
-```
-save-it/
-├── web/                  # Next.js 웹앱 (PWA)
-│   ├── src/
-│   │   ├── app/          # App Router 페이지 · API Route
-│   │   ├── components/   # UI 컴포넌트
-│   │   └── lib/          # supabase, para, remind, push 유틸
-│   └── supabase/migrations/   # DB 마이그레이션
-├── extension/            # WXT 크롬 익스텐션
-│   ├── entrypoints/      # popup, content(floating widget), background
-│   ├── components/       # UI 컴포넌트
-│   └── lib/              # supabase, para, types 유틸
-├── docs/                 # PRD, ARCHITECTURE, ERD, 리마인드 전략
-└── .github/workflows/    # 매시 푸시 리마인드 cron
-```
-
-데이터 흐름:
-
-```
-웹앱        → Supabase (브라우저에서 직접 호출)
-익스텐션     → Supabase (브라우저에서 직접 호출)
-GitHub Cron → Vercel API Route → web-push → 사용자 (리마인드)
-```
-
----
-
-## 🚀 시작하기
-
-### 사전 준비
-- Node.js 20+
-- [Supabase](https://supabase.com) 프로젝트
-
-### 1. Supabase
-`web/supabase/migrations/`의 SQL을 Supabase 프로젝트에 순서대로 적용합니다.
-주요 테이블: `folders`, `links`, `tags`, `link_tags`, `link_reminders`, `user_reminder_prefs`, `push_subscriptions` (모두 RLS 적용).
-
-### 2. 웹앱 (`web/`)
-
-```bash
-cd web
-cp .env.example .env.local   # 값 채우기
-npm install
-npm run dev                  # http://localhost:3000
-```
-
-`.env.local` 필요 값:
-
-```bash
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-
-# 웹 푸시 — npx web-push generate-vapid-keys 로 생성
-NEXT_PUBLIC_VAPID_PUBLIC_KEY=
-VAPID_PRIVATE_KEY=
-VAPID_SUBJECT=mailto:owner@example.com
-
-CRON_SECRET=                 # cron 엔드포인트 보호용
-```
-
-### 3. 익스텐션 (`extension/`)
-
-```bash
-cd extension
-# extension/.env 생성
-#   WXT_PUBLIC_SUPABASE_URL=
-#   WXT_PUBLIC_SUPABASE_ANON_KEY=
-npm install
-npm run dev                  # 개발 모드(자동 리로드)
-npm run build                # .output/chrome-mv3 생성
-```
-
-빌드 후 `chrome://extensions` → 개발자 모드 → **압축해제된 확장 프로그램 로드** → `extension/.output/chrome-mv3` 선택.
-
----
-
-## ⏰ 리마인드 시스템
-
-- `.github/workflows/remind-push.yml` 이 **매시 정각(UTC)** 에 Vercel cron 엔드포인트를 호출
-- `/api/cron/remind-push` 가 사용자별 타임존·발송 시각을 확인하고, 점수화된 후보를 `web-push`로 발송
-- 점수 전략은 [`docs/REMIND_STRATEGY.md`](docs/REMIND_STRATEGY.md) 참고
-- GitHub Actions secret: `CRON_SECRET`
-
----
-
-## 🛠 스크립트
-
-**web/**
-
-```bash
-npm run dev      # 개발 서버
-npm run build    # 프로덕션 빌드
-npm run start    # 프로덕션 실행
-npm run lint     # ESLint
-npm run test     # Vitest
-```
-
-**extension/**
-
-```bash
-npm run dev      # WXT 개발 모드
-npm run build    # 프로덕션 빌드
-npm run zip      # 스토어 업로드용 zip
-```
-
----
-
-## 📖 문서
-
-- [`docs/PRD.md`](docs/PRD.md) — 제품 요구사항
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — 아키텍처
+- [`docs/PRD.md`](docs/PRD.md) — 제품 요구사항과 문제 정의
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — 시스템 아키텍처와 데이터 흐름
 - [`docs/ERD.md`](docs/ERD.md) — 데이터 모델
 - [`docs/REMIND_STRATEGY.md`](docs/REMIND_STRATEGY.md) — 리마인드 점수 전략
