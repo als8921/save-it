@@ -13,12 +13,16 @@ interface KebabMenuProps {
   label?: string;
 }
 
+interface Coords {
+  top?: number;
+  bottom?: number;
+  right: number;
+  maxHeight: number;
+}
+
 export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
   const [open, setOpen] = useState(false);
-  const [coords, setCoords] = useState<{ top: number; right: number }>({
-    top: 0,
-    right: 0,
-  });
+  const [coords, setCoords] = useState<Coords>({ right: 0, maxHeight: 0 });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -58,14 +62,19 @@ export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
           e.stopPropagation();
           if (!open && triggerRef.current) {
             const rect = triggerRef.current.getBoundingClientRect();
-            // 아래 공간이 부족하면 버튼 위로 펼친다
-            const estimatedHeight = items.length * 30 + 8;
-            const openUp =
-              rect.bottom + estimatedHeight > window.innerHeight &&
-              rect.top - estimatedHeight > 0;
+            const margin = 8;
+            const spaceBelow = window.innerHeight - rect.bottom - margin;
+            const spaceAbove = rect.top - margin;
+            // 아래 공간이 좁고 위가 더 넓으면 버튼 위로 펼친다
+            const openUp = spaceBelow < 200 && spaceAbove > spaceBelow;
             setCoords({
-              top: openUp ? rect.top - estimatedHeight - 4 : rect.bottom + 4,
               right: window.innerWidth - rect.right,
+              ...(openUp
+                ? {
+                    bottom: window.innerHeight - rect.top + 4,
+                    maxHeight: spaceAbove,
+                  }
+                : { top: rect.bottom + 4, maxHeight: spaceBelow }),
             });
           }
           setOpen((v) => !v);
@@ -78,8 +87,14 @@ export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
         createPortal(
           <div
             ref={menuRef}
-            style={{ position: "fixed", top: coords.top, right: coords.right }}
-            className="z-[100] min-w-28 max-w-56 rounded-lg border bg-card p-1 text-xs shadow-md"
+            style={{
+              position: "fixed",
+              top: coords.top,
+              bottom: coords.bottom,
+              right: coords.right,
+              maxHeight: coords.maxHeight,
+            }}
+            className="z-[100] min-w-28 max-w-56 overflow-y-auto rounded-lg border bg-card p-1 text-xs shadow-md"
           >
             {items.map((item) => (
               <button

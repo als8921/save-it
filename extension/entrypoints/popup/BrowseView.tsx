@@ -1,11 +1,4 @@
-import {
-  ExternalLink,
-  FolderOpen,
-  FolderPlus,
-  Inbox,
-  Plus,
-  X,
-} from "lucide-react";
+import { FolderOpen, FolderPlus, Inbox, Plus, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -586,7 +579,6 @@ function LinkRow({
             {host && <span className="truncate font-mono">{host}</span>}
           </div>
         </div>
-        <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
       </button>
       {menu}
     </div>
