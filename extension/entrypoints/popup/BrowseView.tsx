@@ -8,8 +8,10 @@ import {
   Plus,
   X,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
+import { KebabMenu, type KebabMenuItem } from "../../components/ui/menu";
 import { cn } from "../../lib/utils";
 import { supabase } from "../../lib/supabase";
 import { useSyncedState } from "../../lib/useSyncedState";
@@ -28,6 +30,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
   const [links, setLinks] = useState<Link[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
 
   const [filter, setFilter] = useSyncedState<ParaFilter | null>(
     "saveit_browse_filter",
@@ -97,6 +100,51 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
         ),
       );
     }
+  }
+
+  async function updateLink(
+    id: string,
+    patch: { title?: string; description?: string | null; priority?: number; folder_id?: string | null },
+  ) {
+    const prev = links;
+    setLinks((cur) => cur.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+    const { error } = await supabase.from("links").update(patch).eq("id", id);
+    if (error) {
+      setLinks(prev);
+      setError(error.message);
+    }
+  }
+
+  async function deleteLink(id: string) {
+    const prev = links;
+    setLinks((cur) => cur.filter((l) => l.id !== id));
+    const { error } = await supabase.from("links").delete().eq("id", id);
+    if (error) {
+      setLinks(prev);
+      setError(error.message);
+    }
+  }
+
+  function linkMenuItems(link: Link): KebabMenuItem[] {
+    const moveTargets = [
+      { id: null as string | null, name: "미지정" },
+      ...folders.map((f) => ({ id: f.id as string | null, name: f.name })),
+    ].filter((t) => t.id !== (link.folder_id ?? null));
+
+    return [
+      { label: "수정", onClick: () => setEditingLinkId(link.id) },
+      ...moveTargets.map((t) => ({
+        label: `→ ${t.name}`,
+        onClick: () => updateLink(link.id, { folder_id: t.id }),
+      })),
+      {
+        label: "삭제",
+        destructive: true,
+        onClick: () => {
+          if (confirm("이 링크를 삭제할까요?")) deleteLink(link.id);
+        },
+      },
+    ];
   }
 
   function host(url: string) {
@@ -293,13 +341,25 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
               <ul className="space-y-1">
                 {unassignedLinks.map((link) => (
                   <li key={link.id}>
-                    <LinkRow
-                      title={link.title}
-                      host={host(link.url)}
-                      isRead={link.is_read}
-                      priority={link.priority ?? 0}
-                      onClick={() => openLink(link)}
-                    />
+                    {editingLinkId === link.id ? (
+                      <LinkEditForm
+                        link={link}
+                        onCancel={() => setEditingLinkId(null)}
+                        onSave={(patch) => {
+                          updateLink(link.id, patch);
+                          setEditingLinkId(null);
+                        }}
+                      />
+                    ) : (
+                      <LinkRow
+                        title={link.title}
+                        host={host(link.url)}
+                        isRead={link.is_read}
+                        priority={link.priority ?? 0}
+                        onClick={() => openLink(link)}
+                        menu={<KebabMenu items={linkMenuItems(link)} label="링크 메뉴" />}
+                      />
+                    )}
                   </li>
                 ))}
               </ul>
@@ -373,13 +433,25 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
                           <ul className="space-y-1">
                             {folderLinks.map((link) => (
                               <li key={link.id}>
-                                <LinkRow
-                                  title={link.title}
-                                  host={host(link.url)}
-                                  isRead={link.is_read}
-                                  priority={link.priority ?? 0}
-                                  onClick={() => openLink(link)}
-                                />
+                                {editingLinkId === link.id ? (
+                                  <LinkEditForm
+                                    link={link}
+                                    onCancel={() => setEditingLinkId(null)}
+                                    onSave={(patch) => {
+                                      updateLink(link.id, patch);
+                                      setEditingLinkId(null);
+                                    }}
+                                  />
+                                ) : (
+                                  <LinkRow
+                                    title={link.title}
+                                    host={host(link.url)}
+                                    isRead={link.is_read}
+                                    priority={link.priority ?? 0}
+                                    onClick={() => openLink(link)}
+                                    menu={<KebabMenu items={linkMenuItems(link)} label="링크 메뉴" />}
+                                  />
+                                )}
                               </li>
                             ))}
                           </ul>
@@ -403,39 +475,104 @@ function LinkRow({
   isRead,
   priority,
   onClick,
+  menu,
 }: {
   title: string;
   host: string;
   isRead: boolean;
   priority: number;
   onClick: () => void;
+  menu?: ReactNode;
 }) {
   const dots = Math.min(2, priority);
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <div
       className={cn(
-        "group flex w-full items-center gap-2 rounded-lg border bg-card px-2.5 py-2 text-left transition-colors active:bg-accent cursor-pointer",
+        "group flex w-full items-center gap-2 rounded-lg border bg-card px-2.5 py-2 transition-colors",
         isRead && "opacity-70",
       )}
     >
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-xs font-medium">{title}</div>
-        <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
-          {dots > 0 && (
-            <span className="flex gap-0.5" aria-label={`우선도 ${dots}`}>
-              {Array.from({ length: dots }).map((_, i) => (
-                <span key={i} className="h-1 w-1 rounded-full bg-foreground" />
-              ))}
-            </span>
-          )}
-          {host && (
-            <span className="truncate font-mono">{host}</span>
-          )}
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex min-w-0 flex-1 items-center gap-2 text-left cursor-pointer"
+      >
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-xs font-medium">{title}</div>
+          <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+            {dots > 0 && (
+              <span className="flex gap-0.5" aria-label={`우선도 ${dots}`}>
+                {Array.from({ length: dots }).map((_, i) => (
+                  <span key={i} className="h-1 w-1 rounded-full bg-foreground" />
+                ))}
+              </span>
+            )}
+            {host && <span className="truncate font-mono">{host}</span>}
+          </div>
         </div>
+        <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+      </button>
+      {menu}
+    </div>
+  );
+}
+
+function LinkEditForm({
+  link,
+  onSave,
+  onCancel,
+}: {
+  link: Link;
+  onSave: (patch: { title: string; description: string | null; priority: number }) => void;
+  onCancel: () => void;
+}) {
+  const [title, setTitle] = useState(link.title);
+  const [priority, setPriority] = useState(link.priority ?? 0);
+  return (
+    <div className="space-y-2 rounded-lg border bg-card/60 p-2">
+      <Input
+        autoFocus
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="제목"
+        className="h-8 text-xs"
+      />
+      <div className="flex gap-1">
+        {[
+          { v: 0, label: "보통" },
+          { v: 1, label: "중요" },
+          { v: 2, label: "매우" },
+        ].map((opt) => (
+          <button
+            key={opt.v}
+            type="button"
+            onClick={() => setPriority(opt.v)}
+            className={cn(
+              "flex-1 rounded border py-1 text-[10px]",
+              priority === opt.v
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-card",
+            )}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
-      <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-    </button>
+      <div className="flex gap-1">
+        <Button
+          type="button"
+          size="sm"
+          className="flex-1"
+          onClick={() =>
+            onSave({ title: title.trim() || link.url, description: link.description, priority })
+          }
+        >
+          저장
+        </Button>
+        <Button type="button" size="sm" variant="outline" onClick={onCancel}>
+          취소
+        </Button>
+      </div>
+    </div>
   );
 }
