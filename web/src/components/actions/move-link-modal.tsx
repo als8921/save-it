@@ -18,23 +18,27 @@ interface MoveLinkModalProps {
 export function MoveLinkModal({ open, onOpenChange, link }: MoveLinkModalProps) {
   const router = useRouter();
   const [folders, setFolders] = useState<{ id: string; name: string }[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");
   const [savingId, setSavingId] = useState<string | "null" | null>(null);
 
   useEffect(() => {
     if (!open) return;
-    setLoading(true);
+    let active = true;
     const supabase = createClient();
     supabase
       .from("folders")
       .select("id, name")
       .order("created_at", { ascending: true })
       .then(({ data, error }) => {
+        if (!active) return;
         if (error) setError(error.message);
         else setFolders((data ?? []) as { id: string; name: string }[]);
-        setLoading(false);
+        setLoaded(true);
       });
+    return () => {
+      active = false;
+    };
   }, [open]);
 
   async function moveTo(folderId: string | null) {
@@ -75,7 +79,7 @@ export function MoveLinkModal({ open, onOpenChange, link }: MoveLinkModalProps) 
               }
             />
           </div>
-          {loading ? (
+          {!loaded ? (
             <p className="py-6 text-center text-sm text-muted-foreground">불러오는 중…</p>
           ) : (
             <ul className="space-y-1">
