@@ -16,10 +16,10 @@ export function SignOutButton() {
     <button
       type="button"
       onClick={handle}
-      className="flex w-full items-center justify-between rounded-xl border bg-card px-4 py-3 text-sm transition-colors active:bg-accent"
+      className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-medium text-destructive transition-colors active:bg-accent"
     >
+      <LogOut className="h-5 w-5 shrink-0" />
       <span>로그아웃</span>
-      <LogOut className="h-4 w-4 text-muted-foreground" />
     </button>
   );
 }

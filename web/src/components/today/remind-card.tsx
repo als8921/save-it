@@ -1,6 +1,6 @@
 "use client";
 
-import { PARA_TOKENS, UNASSIGNED_TOKEN } from "@/lib/para";
+import { LinkFavicon } from "@/components/library/link-favicon";
 import type { RemindCandidate } from "@/lib/remind/picker";
 
 function hostOf(url: string) {
@@ -27,8 +27,6 @@ export function RemindCard({ candidate }: RemindCardProps) {
   const { link, folder } = candidate;
   const dots = Math.min(2, link.priority ?? 0);
   const host = hostOf(link.url);
-  const para = folder.para_category;
-  const token = para ? PARA_TOKENS[para] : UNASSIGNED_TOKEN;
 
   return (
     <a
@@ -36,31 +34,37 @@ export function RemindCard({ candidate }: RemindCardProps) {
       target="_blank"
       rel="noopener noreferrer"
       onClick={() => recordOpen(link.id)}
-      style={{ backgroundColor: token.bg }}
-      className="relative block rounded-2xl px-4 py-4 transition-transform active:scale-[0.98]"
+      className="flex h-16 items-center gap-3 transition active:bg-accent"
     >
-      {dots > 0 && (
-        <span
-          className="absolute right-3 top-3 flex gap-0.5"
-          aria-label={`우선도 ${dots}`}
-        >
-          {Array.from({ length: dots }).map((_, i) => (
-            <span key={i} className="h-1.5 w-1.5 rounded-full bg-foreground" />
-          ))}
-        </span>
-      )}
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center">
+        <LinkFavicon host={host} />
+      </span>
 
-      <div className="pr-10 text-sm font-semibold text-foreground line-clamp-2">
-        {link.title}
-      </div>
+      <div className="flex h-full min-w-0 flex-1 items-center gap-2 border-b border-border group-last:border-b-0">
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-medium leading-snug text-foreground line-clamp-1">
+            {link.title}
+          </div>
+          <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="truncate">{folder.name}</span>
+            {host && (
+              <>
+                <span className="text-muted-foreground/50">·</span>
+                <span className="truncate font-mono">{host}</span>
+              </>
+            )}
+          </div>
+        </div>
 
-      <div className="mt-1 text-xs text-muted-foreground">
-        {folder.name}
-        {host && (
-          <>
-            {" · "}
-            <span className="font-mono">{host}</span>
-          </>
+        {dots > 0 && (
+          <span
+            className="flex shrink-0 gap-0.5"
+            aria-label={`우선도 ${dots}`}
+          >
+            {Array.from({ length: dots }).map((_, i) => (
+              <span key={i} className="h-1.5 w-1.5 rounded-full bg-foreground" />
+            ))}
+          </span>
         )}
       </div>
     </a>

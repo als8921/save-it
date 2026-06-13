@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { AppHeader } from "@/components/shell/app-header";
 import { ParaCard } from "@/components/library/para-card";
 import { UnassignedCard } from "@/components/library/unassigned-card";
 import { QuickAddFab } from "@/components/actions/quick-add-fab";
@@ -39,10 +38,10 @@ export default async function LibraryHome() {
 
   return (
     <>
-      <AppHeader
-        title="라이브러리"
-      />
-      <div className="p-4 space-y-3">
+      <div
+        className="p-4 space-y-3"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)" }}
+      >
         <div className="grid grid-cols-2 gap-3">
           {PARA_ORDER.map((category) => (
             <ParaCard
