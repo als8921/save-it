@@ -124,7 +124,7 @@ export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
                 e.stopPropagation();
                 close();
               }}
-              className="absolute right-1.5 top-1.5 z-10 flex h-6 w-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-foreground/[0.06] cursor-pointer"
+              className="absolute right-1.5 top-1.5 z-10 flex h-6 w-6 items-center justify-center rounded text-muted-foreground cursor-pointer"
             >
               <X className="h-3.5 w-3.5" />
             </button>
