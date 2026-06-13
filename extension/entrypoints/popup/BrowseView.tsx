@@ -1,6 +1,4 @@
 import {
-  ChevronDown,
-  ChevronRight,
   ExternalLink,
   FolderOpen,
   FolderPlus,
@@ -42,11 +40,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
     "saveit_browse_filter",
     null,
   );
-  const [expandedIds, setExpandedIds] = useSyncedState<string[]>(
-    "saveit_expanded_folders",
-    [],
-  );
-  const expanded = useMemo(() => new Set(expandedIds), [expandedIds]);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
 
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
@@ -57,6 +51,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
     setShowNewFolder(false);
     setNewFolderName("");
     setFolderError("");
+    setSelectedFolderId(null);
   }, [filter]);
 
   useEffect(() => {
@@ -85,9 +80,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
   });
 
   function toggleFolder(id: string) {
-    setExpandedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
+    setSelectedFolderId((prev) => (prev === id ? null : id));
   }
 
   async function openLink(link: Link) {
@@ -434,12 +427,12 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
               폴더가 없어요
             </p>
           ) : (
-            <ul className="space-y-0.5">
+            <ul className="space-y-1.5">
               {visibleFolders.map((folder) => {
                 const folderLinks = links.filter(
                   (l) => l.folder_id === folder.id,
                 );
-                const isOpen = expanded.has(folder.id);
+                const isOpen = selectedFolderId === folder.id;
                 const isUnassigned = folder.para_category === null;
                 return (
                   <li key={folder.id}>
@@ -453,27 +446,27 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
                         }}
                       />
                     ) : (
-                      <div className="group flex items-stretch rounded-md transition-colors hover:bg-accent/50">
+                      <div
+                        className={cn(
+                          "group flex items-stretch rounded-lg transition-colors",
+                          isOpen ? "bg-accent" : "hover:bg-accent/50",
+                        )}
+                      >
                         <button
                           type="button"
                           onClick={() => toggleFolder(folder.id)}
                           aria-expanded={isOpen}
-                          className="flex flex-1 items-center gap-2 px-2 py-2 text-left cursor-pointer"
+                          className="flex flex-1 items-center gap-2.5 px-3 py-2.5 text-left cursor-pointer"
                         >
-                          {isOpen ? (
-                            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                          ) : (
-                            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                          )}
                           {isUnassigned ? (
-                            <Inbox className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                            <Inbox className="h-4 w-4 shrink-0 text-muted-foreground" />
                           ) : (
-                            <FolderOpen className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                            <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
                           )}
-                          <span className="flex-1 truncate text-xs font-medium">
+                          <span className="flex-1 truncate text-sm font-medium">
                             {folder.name}
                           </span>
-                          <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
+                          <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
                             {folderLinks.length}
                           </span>
                         </button>
@@ -497,7 +490,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
                       </div>
                     )}
                     {isOpen && (
-                      <div className="mb-1 ml-[15px] border-l border-border/60 pl-1.5">
+                      <div className="mb-1 ml-[20px] mt-0.5 border-l border-border/60 pl-2">
                         {folderLinks.length === 0 ? (
                           <p className="px-2 py-1.5 text-[11px] italic text-muted-foreground">
                             비어있음
