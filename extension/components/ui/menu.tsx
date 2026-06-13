@@ -26,86 +26,82 @@ export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
   }
 
   const current = sub ? sub.items : items;
-  const heading = sub ? sub.label : label;
 
   return (
-    <>
+    <div className="relative">
       <button
         type="button"
         aria-label={label}
         onClick={(e) => {
           e.stopPropagation();
           setSub(null);
-          setOpen(true);
+          setOpen((v) => !v);
         }}
-        className="flex h-7 w-7 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
+        className={cn(
+          "flex h-7 w-7 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer",
+          open && "bg-accent text-foreground",
+        )}
       >
         <MoreVertical className="h-3.5 w-3.5" />
       </button>
       {open && (
+        <>
+          {/* 바깥 클릭 감지 (투명, 클릭 통과 방지) */}
           <div
-            className="fixed inset-0 z-[150] flex items-center justify-center p-4"
+            className="fixed inset-0 z-[140]"
             onClick={(e) => {
               e.stopPropagation();
               close();
             }}
+          />
+          <div
+            className="absolute right-0 top-full z-[150] mt-1 max-h-60 min-w-32 overflow-y-auto rounded-lg border bg-card py-1 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute inset-0 bg-black/40" />
-            <div
-              className="relative flex max-h-[80%] w-full max-w-[300px] flex-col overflow-hidden rounded-xl border bg-card shadow-xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex shrink-0 items-center gap-1 border-b px-2 py-2">
-                {sub && (
-                  <button
-                    type="button"
-                    aria-label="뒤로"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSub(null);
-                    }}
-                    className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground cursor-pointer"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                )}
-                <span className="text-[11px] font-medium text-muted-foreground">
-                  {heading}
-                </span>
-              </div>
-              <div className="overflow-y-auto p-1.5">
-                {current.length === 0 ? (
-                  <p className="px-3 py-3 text-center text-xs italic text-muted-foreground">
-                    이동할 폴더가 없어요
-                  </p>
-                ) : (
-                  current.map((item) => (
-                    <button
-                      key={item.label}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (item.submenu) {
-                          setSub({ label: item.label, items: item.submenu });
-                        } else {
-                          close();
-                          item.onClick?.();
-                        }
-                      }}
-                      className={cn(
-                        "block w-full truncate rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-accent cursor-pointer",
-                        item.destructive &&
-                          "text-destructive hover:bg-destructive/10",
-                      )}
-                    >
-                      {item.label}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
+            {sub && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSub(null);
+                }}
+                className="flex w-full items-center gap-1 px-2.5 py-1.5 text-left text-[11px] text-muted-foreground transition-colors hover:bg-accent cursor-pointer"
+              >
+                <ChevronLeft className="h-3 w-3" />
+                {sub.label}
+              </button>
+            )}
+            {current.length === 0 ? (
+              <p className="px-3 py-2 text-xs italic text-muted-foreground">
+                이동할 폴더가 없어요
+              </p>
+            ) : (
+              current.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (item.submenu) {
+                      setSub({ label: item.label, items: item.submenu });
+                    } else {
+                      close();
+                      item.onClick?.();
+                    }
+                  }}
+                  className={cn(
+                    "block w-full truncate px-3 py-2 text-left text-sm transition-colors hover:bg-accent cursor-pointer",
+                    item.destructive &&
+                      "text-destructive hover:bg-destructive/10",
+                  )}
+                >
+                  {item.label}
+                </button>
+              ))
+            )}
           </div>
-        )}
-    </>
+        </>
+      )}
+    </div>
   );
 }
