@@ -46,6 +46,7 @@ function FloatingWidget() {
   const [pos, setPos] = useState(DEFAULT_POS);
   const [open, setOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
   const dragRef = useRef<{
     startX: number;
     startY: number;
@@ -89,6 +90,18 @@ function FloatingWidget() {
     };
     browser.storage.onChanged.addListener(listener);
     return () => browser.storage.onChanged.removeListener(listener);
+  }, []);
+
+  // 페이지 전체화면(유튜브 풀스크린 등)일 때는 위젯을 숨긴다
+  useEffect(() => {
+    const sync = () => setFullscreen(Boolean(document.fullscreenElement));
+    sync();
+    document.addEventListener("fullscreenchange", sync);
+    document.addEventListener("webkitfullscreenchange", sync);
+    return () => {
+      document.removeEventListener("fullscreenchange", sync);
+      document.removeEventListener("webkitfullscreenchange", sync);
+    };
   }, []);
 
   function setOpenSynced(next: boolean) {
@@ -150,6 +163,8 @@ function FloatingWidget() {
     cursor: dragging ? "grabbing" : "grab",
   };
 
+  if (fullscreen) return null;
+
   return (
     <div
       className="fixed font-sans flex flex-col items-end gap-2"
@@ -203,6 +218,7 @@ function FloatingPanel({ onSaved }: { onSaved: () => void }) {
 
   return (
     <div
+      data-menu-boundary
       className="w-[360px] overflow-hidden rounded-2xl border border-border bg-background text-foreground animate-fade-up"
       style={{
         boxShadow:

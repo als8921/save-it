@@ -1,58 +1,56 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { ArrowUpRight, ChevronDown, ChevronRight, FolderOpen } from "lucide-react";
+import { FolderOpen } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { LinkCard } from "./link-card";
-import type { Link as LinkRow } from "@/lib/types";
+import { FolderActionsMenu } from "./folder-actions-menu";
+import type { Folder, Link as LinkRow } from "@/lib/types";
 
 interface FolderAccordionItemProps {
-  id: string;
-  name: string;
+  folder: Folder;
   links: LinkRow[];
+  expanded: boolean;
+  onToggle: () => void;
 }
 
-export function FolderAccordionItem({ id, name, links }: FolderAccordionItemProps) {
-  const [expanded, setExpanded] = useState(false);
+export function FolderAccordionItem({
+  folder,
+  links,
+  expanded,
+  onToggle,
+}: FolderAccordionItemProps) {
+  const { id, name } = folder;
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-card">
-      <div className="flex items-stretch">
+    <div>
+      <div
+        className={cn(
+          "group flex items-stretch rounded-lg transition-colors",
+          expanded ? "bg-accent" : "hover:bg-accent/60"
+        )}
+      >
         <button
           type="button"
-          onClick={() => setExpanded((v) => !v)}
+          onClick={onToggle}
           aria-expanded={expanded}
           aria-controls={`folder-${id}-content`}
-          className="flex flex-1 items-center gap-2 px-3 py-3 text-left transition-colors active:bg-accent"
+          className="flex flex-1 items-center gap-2.5 px-3 py-2.5 text-left"
         >
-          {expanded ? (
-            <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-          )}
           <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
           <span className="flex-1 truncate text-sm font-medium">{name}</span>
-          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-            {links.length}
-          </span>
         </button>
-        <Link
-          href={`/folder/${id}`}
-          aria-label={`${name} 폴더 페이지 열기`}
-          title="폴더 페이지에서 관리"
-          className="flex w-10 items-center justify-center border-l text-muted-foreground transition-colors hover:text-foreground active:bg-accent"
-        >
-          <ArrowUpRight className="h-4 w-4" />
-        </Link>
+        <div className="flex items-center pr-0.5">
+          <FolderActionsMenu folder={folder} linkCount={links.length} />
+        </div>
       </div>
       {expanded && (
-        <div id={`folder-${id}-content`} className="border-t bg-background/40 p-2">
+        <div id={`folder-${id}-content`} className="mb-1 mt-0.5 pl-3">
           {links.length === 0 ? (
-            <p className="px-2 py-3 text-xs italic text-muted-foreground">
+            <p className="px-2 py-2 text-xs italic text-muted-foreground">
               비어있음
             </p>
           ) : (
-            <ul className="space-y-1">
+            <ul className="space-y-0.5">
               {links.map((l) => (
                 <li key={l.id}>
                   <LinkCard link={l} />

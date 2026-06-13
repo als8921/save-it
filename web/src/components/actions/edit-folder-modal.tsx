@@ -3,21 +3,29 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog } from "@base-ui/react/dialog";
-import { Plus, X } from "lucide-react";
+import { X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { ParaCategory } from "@/lib/types";
+import {
+  PARA_OPTIONS,
+  categoryToParaParam,
+  paraParamToCategory,
+  isDuplicateNameError,
+  type ParaParam,
+} from "@/lib/library";
+import type { Folder } from "@/lib/types";
 
-interface AddFolderModalProps {
-  category: ParaCategory | null;
-  userId: string;
+interface EditFolderModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  folder: Folder;
 }
 
-export function AddFolderModal({ category, userId }: AddFolderModalProps) {
+export function EditFolderModal({ open, onOpenChange, folder }: EditFolderModalProps) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
+  const [name, setName] = useState(folder.name);
+  const [para, setPara] = useState<ParaParam>(categoryToParaParam(folder.para_category));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -27,43 +35,30 @@ export function AddFolderModal({ category, userId }: AddFolderModalProps) {
     setSubmitting(true);
     setError("");
     const supabase = createClient();
-    const { error: insertError } = await supabase.from("folders").insert({
-      user_id: userId,
-      name: name.trim(),
-      para_category: category,
-    });
+    const { error: updateError } = await supabase
+      .from("folders")
+      .update({ name: name.trim(), para_category: paraParamToCategory(para) })
+      .eq("id", folder.id);
     setSubmitting(false);
-    if (insertError) {
+    if (updateError) {
       setError(
-        insertError.code === "23505"
+        isDuplicateNameError(updateError.code)
           ? "이미 같은 이름의 폴더가 있어요"
-          : insertError.message
+          : updateError.message,
       );
       return;
     }
-    setName("");
-    setOpen(false);
+    onOpenChange(false);
     router.refresh();
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger
-        render={
-          <button
-            type="button"
-            className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-          >
-            <Plus className="h-4 w-4" />
-            새 폴더 만들기
-          </button>
-        }
-      />
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
-        <Dialog.Popup className="fixed inset-x-0 bottom-0 z-50 rounded-t-2xl bg-background p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-xl sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl">
+        <Dialog.Popup className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[90svh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-background p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-xl sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl">
           <div className="flex items-center justify-between pb-3">
-            <Dialog.Title className="text-base font-semibold">새 폴더</Dialog.Title>
+            <Dialog.Title className="text-base font-semibold">폴더 수정</Dialog.Title>
             <Dialog.Close
               render={
                 <button
@@ -84,13 +79,29 @@ export function AddFolderModal({ category, userId }: AddFolderModalProps) {
               placeholder="폴더 이름"
               required
             />
+            <div className="grid grid-cols-3 gap-1.5">
+              {PARA_OPTIONS.map((opt) => (
+                <button
+                  type="button"
+                  key={opt.value}
+                  onClick={() => setPara(opt.value)}
+                  className={`rounded-md border py-2 text-xs ${
+                    para === opt.value
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-card"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
             {error && (
               <p className="border-l-2 border-destructive pl-2 text-xs text-destructive">
                 {error}
               </p>
             )}
             <Button type="submit" disabled={submitting || !name.trim()} className="w-full">
-              {submitting ? "생성 중…" : "생성"}
+              {submitting ? "저장 중…" : "저장"}
             </Button>
           </form>
         </Dialog.Popup>

@@ -14,7 +14,7 @@ export default function Popup() {
   }, []);
 
   return (
-    <div className="w-[360px] bg-background text-foreground animate-fade-up">
+    <div data-menu-boundary className="w-[360px] bg-background text-foreground animate-fade-up">
       {(auth.status === "loading" || tab === null) && (
         <div className="flex items-center justify-center px-4 py-6">
           <span className="text-xs text-muted-foreground">불러오는 중…</span>

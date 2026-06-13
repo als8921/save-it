@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ExternalLink } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { Link as LinkRow } from "@/lib/types";
+import { LinkActionsMenu } from "./link-actions-menu";
+import { LinkFavicon } from "./link-favicon";
 
 interface LinkCardProps {
   link: LinkRow;
@@ -36,31 +37,34 @@ export function LinkCard({ link }: LinkCardProps) {
   const dots = Math.min(2, link.priority ?? 0);
 
   return (
-    <a
-      href={link.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={markAsRead}
-      onAuxClick={markAsRead}
-      className={cn(
-        "group flex w-full items-center gap-3 rounded-xl border bg-card px-4 py-3 text-left transition-colors active:bg-accent",
-        link.is_read && "opacity-70"
-      )}
-    >
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium">{link.title}</div>
-        <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-          {dots > 0 && (
-            <span className="flex gap-0.5" aria-label={`우선도 ${dots}`}>
-              {Array.from({ length: dots }).map((_, i) => (
-                <span key={i} className="h-1.5 w-1.5 rounded-full bg-foreground" />
-              ))}
-            </span>
-          )}
-          <span className="truncate font-mono">{hostOf(link.url)}</span>
+    <div className="group flex items-center gap-1 rounded-lg px-2 py-2 transition-colors hover:bg-accent">
+      <a
+        href={link.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={markAsRead}
+        onAuxClick={markAsRead}
+        className={cn(
+          "flex min-w-0 flex-1 items-center gap-3 text-left",
+          link.is_read && "opacity-55"
+        )}
+      >
+        <LinkFavicon host={hostOf(link.url)} />
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-medium">{link.title}</div>
+          <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+            {dots > 0 && (
+              <span className="flex gap-0.5" aria-label={`우선도 ${dots}`}>
+                {Array.from({ length: dots }).map((_, i) => (
+                  <span key={i} className="h-1.5 w-1.5 rounded-full bg-foreground" />
+                ))}
+              </span>
+            )}
+            <span className="truncate font-mono">{hostOf(link.url)}</span>
+          </div>
         </div>
-      </div>
-      <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-    </a>
+      </a>
+      <LinkActionsMenu link={link} />
+    </div>
   );
 }

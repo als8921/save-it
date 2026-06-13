@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/shell/app-header";
 import { BackButton } from "@/components/shell/back-button";
-import { ParaBadge } from "@/components/primitives/para-badge";
 import { LinkCard } from "@/components/library/link-card";
+import { FolderActionsMenu } from "@/components/library/folder-actions-menu";
 import { AddLinkFab } from "@/components/actions/add-link-fab";
 import type { Folder, Link } from "@/lib/types";
 
@@ -41,7 +41,13 @@ export default async function FolderPage({
       <AppHeader
         title={folder.name}
         left={<BackButton fallbackHref={backHref} />}
-        right={<ParaBadge category={folder.para_category} />}
+        right={
+          <FolderActionsMenu
+            folder={folder}
+            linkCount={links.length}
+            redirectAfterDelete={backHref}
+          />
+        }
       />
       <div className="space-y-2 p-4">
         {links.length === 0 ? (
