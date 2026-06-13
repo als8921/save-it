@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog } from "@base-ui/react/dialog";
 import {
-  ArrowLeft,
   Check,
   ChevronDown,
   ChevronUp,
@@ -19,7 +18,6 @@ import { cn } from "@/lib/utils";
 import { PARA_ORDER, PARA_TOKENS, UNASSIGNED_TOKEN } from "@/lib/para";
 import type { Folder, ParaCategory } from "@/lib/types";
 
-type Step = "url" | "folder";
 type ParaTab = ParaCategory | "unassigned";
 
 interface QuickAddModalProps {
@@ -47,7 +45,6 @@ export function QuickAddModal({ open, onOpenChange, userId }: QuickAddModalProps
   const router = useRouter();
   const supabase = createClient();
 
-  const [step, setStep] = useState<Step>("url");
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
   const titleDirtyRef = useRef(false);
@@ -69,7 +66,6 @@ export function QuickAddModal({ open, onOpenChange, userId }: QuickAddModalProps
   const [submitting, setSubmitting] = useState(false);
 
   function resetAll() {
-    setStep("url");
     setUrl("");
     setTitle("");
     titleDirtyRef.current = false;
@@ -89,8 +85,10 @@ export function QuickAddModal({ open, onOpenChange, userId }: QuickAddModalProps
     setSubmitting(false);
   }
 
+  // 열릴 때: 클립보드 URL 읽기 + 폴더 목록 로드
   useEffect(() => {
     if (!open) return;
+    void loadFolders();
     if (typeof navigator === "undefined" || !navigator.clipboard?.readText) return;
     navigator.clipboard
       .readText()
@@ -103,8 +101,10 @@ export function QuickAddModal({ open, onOpenChange, userId }: QuickAddModalProps
       .catch(() => {
         /* ignore permission/api errors */
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // URL 입력 시 메타데이터(제목) 자동 채우기
   useEffect(() => {
     if (!open) return;
     if (!url || !isHttpUrl(url)) return;
@@ -119,12 +119,10 @@ export function QuickAddModal({ open, onOpenChange, userId }: QuickAddModalProps
           if (cancelled) return;
           if (data?.ok && data.title) {
             if (!titleDirtyRef.current) setTitle(data.title);
-          } else {
-            console.warn("[quick-add] metadata failed:", r.status, data);
           }
         })
-        .catch((err) => {
-          console.warn("[quick-add] metadata fetch error:", err);
+        .catch(() => {
+          /* ignore */
         })
         .finally(() => {
           if (!cancelled) setMetaLoading(false);
@@ -149,26 +147,6 @@ export function QuickAddModal({ open, onOpenChange, userId }: QuickAddModalProps
       return;
     }
     setFolders((data ?? []) as Folder[]);
-  }
-
-  async function handleNext() {
-    setError("");
-    setDuplicate(null);
-    if (!url.trim() || !isHttpUrl(url.trim())) {
-      setError("올바른 URL을 입력하세요");
-      return;
-    }
-    const { data: existing } = await supabase
-      .from("links")
-      .select("id, folder_id")
-      .eq("url", url.trim())
-      .maybeSingle();
-    if (existing) {
-      setDuplicate(existing as { id: string; folder_id: string | null });
-      return;
-    }
-    setStep("folder");
-    void loadFolders();
   }
 
   async function handleCreateFolder() {
@@ -199,6 +177,10 @@ export function QuickAddModal({ open, onOpenChange, userId }: QuickAddModalProps
   }
 
   async function handleSave() {
+    if (!url.trim() || !isHttpUrl(url.trim())) {
+      setError("올바른 URL을 입력하세요");
+      return;
+    }
     if (selectedPara !== "unassigned" && !selectedFolderId) {
       setError("폴더를 선택하세요");
       return;
@@ -224,7 +206,7 @@ export function QuickAddModal({ open, onOpenChange, userId }: QuickAddModalProps
       user_id: userId,
       folder_id: folderIdToSave,
       url: url.trim(),
-      title: title.trim(),
+      title: title.trim() || url.trim(),
       description: description.trim() || null,
       priority,
     });
@@ -261,111 +243,76 @@ export function QuickAddModal({ open, onOpenChange, userId }: QuickAddModalProps
     },
   ];
 
+  const canSave =
+    !submitting &&
+    !!url.trim() &&
+    isHttpUrl(url.trim()) &&
+    (selectedPara === "unassigned" || !!selectedFolderId);
+
   return (
     <Dialog.Root
       open={open}
       onOpenChange={(nextOpen) => {
         onOpenChange(nextOpen);
-        if (!nextOpen) {
-          setTimeout(resetAll, 200);
-        }
+        if (!nextOpen) setTimeout(resetAll, 200);
       }}
     >
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
-        <Dialog.Popup className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[92svh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-background p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-xl">
-          <div className="flex items-center justify-between pb-3">
-            <div className="flex items-center gap-2">
-              {step === "folder" && (
-                <button
-                  type="button"
-                  aria-label="뒤로"
-                  onClick={() => setStep("url")}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </button>
-              )}
-              <Dialog.Title className="text-base font-semibold">
-                {step === "url" ? "링크 붙여넣기" : "폴더에 저장"}
-              </Dialog.Title>
-            </div>
+        <Dialog.Popup className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[92svh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-background shadow-2xl sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:max-h-[88vh] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b px-6 py-4">
+            <Dialog.Title className="text-lg font-semibold">
+              새 링크 저장
+            </Dialog.Title>
             <Dialog.Close
               render={
                 <button
                   type="button"
                   aria-label="닫기"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent"
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                 </button>
               }
             />
           </div>
 
-          {step === "url" ? (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                void handleNext();
-              }}
-              className="space-y-3"
-            >
-              <Input
-                autoFocus
-                type="url"
-                value={url}
-                onChange={(e) => {
-                  setUrl(e.target.value);
-                  setDuplicate(null);
-                }}
-                placeholder="https://..."
-                required
-              />
-              {duplicate && (
-                <p className="border-l-2 border-amber-500 pl-2 text-xs text-amber-700">
-                  이미 저장된 URL이에요.{" "}
-                  <a
-                    href={
-                      duplicate.folder_id
-                        ? `/folder/${duplicate.folder_id}`
-                        : `/category/unassigned`
-                    }
-                    className="underline"
-                  >
-                    {duplicate.folder_id ? "해당 폴더 열기" : "미지정 보기"}
-                  </a>
-                </p>
-              )}
-              {error && (
-                <p className="border-l-2 border-destructive pl-2 text-xs text-destructive">
-                  {error}
-                </p>
-              )}
-              <Button
-                type="submit"
-                disabled={!url.trim() || !isHttpUrl(url.trim())}
-                className="w-full"
-              >
-                다음
-              </Button>
-            </form>
-          ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                void handleSave();
-              }}
-              className="space-y-3"
-            >
-              <p className="truncate rounded-lg bg-muted/50 px-2.5 py-1.5 text-xs text-muted-foreground">
-                {url}
-              </p>
-              <div className="space-y-1.5">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void handleSave();
+            }}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5 pb-[calc(env(safe-area-inset-bottom)+8px)]">
+              {/* URL */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground">
+                  링크 주소
+                </label>
+                <Input
+                  autoFocus
+                  type="url"
+                  value={url}
+                  onChange={(e) => {
+                    setUrl(e.target.value);
+                    setDuplicate(null);
+                  }}
+                  placeholder="https://..."
+                  required
+                  className="h-11 text-sm"
+                />
+              </div>
+
+              {/* Title */}
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs text-muted-foreground">제목</label>
+                  <label className="text-xs font-semibold text-muted-foreground">
+                    제목
+                  </label>
                   {metaLoading && (
-                    <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
                       <Loader2 className="h-3 w-3 animate-spin" />
                       가져오는 중…
                     </span>
@@ -378,175 +325,184 @@ export function QuickAddModal({ open, onOpenChange, userId }: QuickAddModalProps
                     setTitle(e.target.value);
                   }}
                   placeholder={
-                    metaLoading
-                      ? "페이지 제목을 가져오는 중…"
-                      : "제목을 입력하세요"
+                    metaLoading ? "페이지 제목 가져오는 중…" : "제목 (비워두면 URL)"
                   }
+                  className="h-11 text-sm"
                 />
               </div>
 
-              <div className="grid grid-cols-5 gap-1.5">
-                {paraChips.map((chip) => {
-                  const active = selectedPara === chip.key;
-                  return (
-                    <button
-                      key={chip.key}
-                      type="button"
-                      onClick={() => {
-                        setSelectedPara(chip.key);
-                        setSelectedFolderId(null);
-                        setShowNewFolder(false);
-                      }}
-                      title={chip.label}
-                      className={cn(
-                        "flex flex-col items-center justify-center gap-0.5 rounded-lg border border-transparent py-1.5 transition-colors cursor-pointer",
-                        active ? "" : "bg-muted/50 hover:bg-accent"
-                      )}
-                      style={
-                        active
-                          ? { backgroundColor: chip.bg, borderColor: chip.fg }
-                          : undefined
-                      }
-                    >
-                      <span
-                        className="text-[13px] font-bold leading-none"
-                        style={{ color: active ? chip.fg : "var(--muted-foreground)" }}
-                      >
-                        {chip.letter}
-                      </span>
-                      <span
+              {/* Folder */}
+              <div className="space-y-2.5">
+                <label className="text-xs font-semibold text-muted-foreground">
+                  저장할 폴더
+                </label>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {paraChips.map((chip) => {
+                    const active = selectedPara === chip.key;
+                    return (
+                      <button
+                        key={chip.key}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPara(chip.key);
+                          setSelectedFolderId(null);
+                          setShowNewFolder(false);
+                        }}
+                        title={chip.label}
                         className={cn(
-                          "text-[9px] leading-none tracking-tight",
-                          active ? "" : "text-muted-foreground"
+                          "flex flex-col items-center justify-center gap-0.5 rounded-xl border border-transparent py-2 transition-colors cursor-pointer",
+                          active ? "" : "bg-muted/60 hover:bg-accent"
                         )}
-                        style={active ? { color: chip.fg } : undefined}
+                        style={
+                          active
+                            ? { backgroundColor: chip.bg, borderColor: chip.fg }
+                            : undefined
+                        }
                       >
-                        {chip.key === "unassigned" ? "미지정" : chip.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+                        <span
+                          className="text-sm font-bold leading-none"
+                          style={{ color: active ? chip.fg : "var(--muted-foreground)" }}
+                        >
+                          {chip.letter}
+                        </span>
+                        <span
+                          className={cn(
+                            "text-[10px] leading-none tracking-tight",
+                            active ? "" : "text-muted-foreground"
+                          )}
+                          style={active ? { color: chip.fg } : undefined}
+                        >
+                          {chip.key === "unassigned" ? "미지정" : chip.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
 
-              {selectedPara === "unassigned" ? (
-                <p className="rounded-xl bg-muted/40 px-3 py-3 text-xs text-muted-foreground">
-                  폴더 없이 미지정으로 저장돼요
-                </p>
-              ) : (
-              <div className="max-h-[200px] space-y-1 overflow-y-auto rounded-xl bg-muted/40 p-1.5">
-                {foldersLoading ? (
-                  <p className="px-2 py-2 text-xs italic text-muted-foreground">
-                    불러오는 중…
+                {selectedPara === "unassigned" ? (
+                  <p className="rounded-xl bg-muted/50 px-3.5 py-3 text-xs text-muted-foreground">
+                    폴더 없이 미지정으로 저장돼요
                   </p>
                 ) : (
-                  <>
-                    {filteredFolders.length === 0 && !showNewFolder && (
-                      <p className="px-2 py-2 text-xs italic text-muted-foreground">
-                        이 카테고리에 폴더가 없어요
+                  <div className="max-h-[210px] space-y-1 overflow-y-auto rounded-xl bg-muted/50 p-2">
+                    {foldersLoading ? (
+                      <p className="px-2 py-3 text-xs italic text-muted-foreground">
+                        불러오는 중…
                       </p>
-                    )}
-                    {filteredFolders.map((folder) => {
-                      const selected = selectedFolderId === folder.id;
-                      return (
-                        <button
-                          key={folder.id}
-                          type="button"
-                          onClick={() => setSelectedFolderId(folder.id)}
-                          className={cn(
-                            "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition-colors cursor-pointer",
-                            selected
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-accent"
-                          )}
-                        >
-                          <span className="flex-1 truncate font-medium">
-                            {folder.name}
-                          </span>
-                          {selected && <Check className="h-3 w-3 shrink-0" />}
-                        </button>
-                      );
-                    })}
-                    {showNewFolder ? (
-                      <div className="flex gap-1 pt-1">
-                        <Input
-                          value={newFolderName}
-                          onChange={(e) => setNewFolderName(e.target.value)}
-                          placeholder="새 폴더 이름"
-                          autoFocus
-                          className="h-7 text-xs"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              void handleCreateFolder();
-                            }
-                            if (e.key === "Escape") {
-                              setShowNewFolder(false);
-                              setNewFolderName("");
-                            }
-                          }}
-                        />
-                        <Button
-                          type="button"
-                          size="xs"
-                          onClick={() => void handleCreateFolder()}
-                          disabled={creatingFolder || !newFolderName.trim()}
-                        >
-                          {creatingFolder ? "…" : "생성"}
-                        </Button>
-                      </div>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => setShowNewFolder(true)}
-                        className="flex w-full items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
-                      >
-                        <FolderPlus className="h-3 w-3" />
-                        <span>새 폴더 만들기</span>
-                      </button>
+                      <>
+                        {filteredFolders.length === 0 && !showNewFolder && (
+                          <p className="px-2 py-3 text-xs italic text-muted-foreground">
+                            이 카테고리에 폴더가 없어요
+                          </p>
+                        )}
+                        {filteredFolders.map((folder) => {
+                          const selected = selectedFolderId === folder.id;
+                          return (
+                            <button
+                              key={folder.id}
+                              type="button"
+                              onClick={() => setSelectedFolderId(folder.id)}
+                              className={cn(
+                                "flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition-colors cursor-pointer",
+                                selected
+                                  ? "bg-primary text-primary-foreground"
+                                  : "hover:bg-accent"
+                              )}
+                            >
+                              <span className="flex-1 truncate font-medium">
+                                {folder.name}
+                              </span>
+                              {selected && <Check className="h-4 w-4 shrink-0" />}
+                            </button>
+                          );
+                        })}
+                        {showNewFolder ? (
+                          <div className="flex gap-1.5 p-1">
+                            <Input
+                              value={newFolderName}
+                              onChange={(e) => setNewFolderName(e.target.value)}
+                              placeholder="새 폴더 이름"
+                              autoFocus
+                              className="h-9 text-sm"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  void handleCreateFolder();
+                                }
+                                if (e.key === "Escape") {
+                                  setShowNewFolder(false);
+                                  setNewFolderName("");
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => void handleCreateFolder()}
+                              disabled={creatingFolder || !newFolderName.trim()}
+                            >
+                              {creatingFolder ? "…" : "생성"}
+                            </Button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setShowNewFolder(true)}
+                            className="flex w-full items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
+                          >
+                            <FolderPlus className="h-4 w-4" />
+                            <span>새 폴더 만들기</span>
+                          </button>
+                        )}
+                      </>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
-              )}
 
-              <button
-                type="button"
-                onClick={() => setShowDetails((v) => !v)}
-                className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs text-muted-foreground hover:bg-accent"
-              >
-                <span>메모 · 우선순위 추가</span>
-                {showDetails ? (
-                  <ChevronUp className="h-3 w-3" />
-                ) : (
-                  <ChevronDown className="h-3 w-3" />
-                )}
-              </button>
-              {showDetails && (
-                <div className="space-y-2">
-                  <Input
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="메모 (선택)"
-                  />
-                  <div className="flex gap-1.5">
-                    {PRIORITY_OPTIONS.map((opt) => (
-                      <button
-                        type="button"
-                        key={opt.value}
-                        onClick={() => setPriority(opt.value)}
-                        className={cn(
-                          "flex-1 rounded-md border py-2 text-xs",
-                          priority === opt.value
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border bg-card"
-                        )}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
+              {/* Details */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowDetails((v) => !v)}
+                  className="flex w-full items-center justify-between rounded-lg py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+                >
+                  <span>메모 · 우선순위</span>
+                  {showDetails ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </button>
+                {showDetails && (
+                  <div className="mt-2.5 space-y-2.5">
+                    <Input
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="메모 (선택)"
+                      className="h-11 text-sm"
+                    />
+                    <div className="flex gap-1.5">
+                      {PRIORITY_OPTIONS.map((opt) => (
+                        <button
+                          type="button"
+                          key={opt.value}
+                          onClick={() => setPriority(opt.value)}
+                          className={cn(
+                            "flex-1 rounded-lg py-2.5 text-xs font-medium transition-colors",
+                            priority === opt.value
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted/60 text-muted-foreground hover:bg-accent"
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
               {duplicate && (
                 <p className="border-l-2 border-amber-500 pl-2 text-xs text-amber-700">
@@ -568,20 +524,19 @@ export function QuickAddModal({ open, onOpenChange, userId }: QuickAddModalProps
                   {error}
                 </p>
               )}
+            </div>
 
+            {/* Footer */}
+            <div className="border-t px-6 py-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
               <Button
                 type="submit"
-                disabled={
-                  submitting ||
-                  !title.trim() ||
-                  (selectedPara !== "unassigned" && !selectedFolderId)
-                }
-                className="w-full"
+                disabled={!canSave}
+                className="h-12 w-full text-sm font-semibold"
               >
                 {submitting ? "저장 중…" : "저장"}
               </Button>
-            </form>
-          )}
+            </div>
+          </form>
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>
