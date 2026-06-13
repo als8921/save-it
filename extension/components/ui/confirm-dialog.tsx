@@ -1,4 +1,3 @@
-import { createPortal } from "react-dom";
 import { Button } from "./button";
 
 interface ConfirmDialogProps {
@@ -19,7 +18,7 @@ export function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   if (!open) return null;
-  return createPortal(
+  return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
       <div className="relative w-full max-w-[280px] rounded-xl border bg-card p-4 shadow-xl">
@@ -41,7 +40,6 @@ export function ConfirmDialog({
           </Button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

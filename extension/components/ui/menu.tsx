@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ChevronLeft, MoreVertical } from "lucide-react";
-import { createPortal } from "react-dom";
 import { cn } from "../../lib/utils";
 
 export interface KebabMenuItem {
@@ -43,8 +42,7 @@ export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
       >
         <MoreVertical className="h-3.5 w-3.5" />
       </button>
-      {open &&
-        createPortal(
+      {open && (
           <div
             className="fixed inset-0 z-[150] flex items-center justify-center p-4"
             onClick={(e) => {
@@ -106,8 +104,7 @@ export function KebabMenu({ items, label = "메뉴" }: KebabMenuProps) {
                 )}
               </div>
             </div>
-          </div>,
-          document.body,
+          </div>
         )}
     </>
   );
