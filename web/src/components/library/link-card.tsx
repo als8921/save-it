@@ -5,6 +5,7 @@ import { ExternalLink } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { Link as LinkRow } from "@/lib/types";
+import { LinkActionsMenu } from "./link-actions-menu";
 
 interface LinkCardProps {
   link: LinkRow;
@@ -60,7 +61,10 @@ export function LinkCard({ link }: LinkCardProps) {
           <span className="truncate font-mono">{hostOf(link.url)}</span>
         </div>
       </div>
-      <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+      <div className="flex shrink-0 items-center gap-0.5">
+        <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+        <LinkActionsMenu link={link} />
+      </div>
     </a>
   );
 }
