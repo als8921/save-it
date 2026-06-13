@@ -478,9 +478,6 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
                           <span className="flex-1 truncate text-sm font-medium">
                             {folder.name}
                           </span>
-                          <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                            {folderLinks.length}
-                          </span>
                         </button>
                         {onAddLinkToFolder && (
                           <button
