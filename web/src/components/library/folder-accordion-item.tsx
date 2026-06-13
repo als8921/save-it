@@ -4,16 +4,17 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, ChevronDown, ChevronRight, FolderOpen } from "lucide-react";
 import { LinkCard } from "./link-card";
-import type { Link as LinkRow } from "@/lib/types";
+import { FolderActionsMenu } from "./folder-actions-menu";
+import type { Folder, Link as LinkRow } from "@/lib/types";
 
 interface FolderAccordionItemProps {
-  id: string;
-  name: string;
+  folder: Folder;
   links: LinkRow[];
 }
 
-export function FolderAccordionItem({ id, name, links }: FolderAccordionItemProps) {
+export function FolderAccordionItem({ folder, links }: FolderAccordionItemProps) {
   const [expanded, setExpanded] = useState(false);
+  const { id, name } = folder;
 
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
@@ -44,6 +45,9 @@ export function FolderAccordionItem({ id, name, links }: FolderAccordionItemProp
         >
           <ArrowUpRight className="h-4 w-4" />
         </Link>
+        <div className="flex items-center border-l px-0.5">
+          <FolderActionsMenu folder={folder} linkCount={links.length} />
+        </div>
       </div>
       {expanded && (
         <div id={`folder-${id}-content`} className="border-t bg-background/40 p-2">

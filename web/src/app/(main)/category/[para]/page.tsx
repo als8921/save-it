@@ -90,8 +90,7 @@ export default async function CategoryPage({
           folders.map((f) => (
             <FolderAccordionItem
               key={f.id}
-              id={f.id}
-              name={f.name}
+              folder={f}
               links={linksByFolder.get(f.id) ?? []}
             />
           ))
