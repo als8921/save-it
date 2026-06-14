@@ -27,7 +27,11 @@ export async function GET(req: Request) {
     .select("user_id, daily_time, daily_count, timezone")
     .eq("daily_enabled", true);
 
-  // 사용자별 파생 시각 목록 중 하나라도 현재 로컬 시각 ±30분이면 발송 대상
+  // 사용자별 파생 시각 목록 중 하나라도 현재 로컬 시각 ±30분이면 발송 대상.
+  // 알려진 한계(현재는 모두 미도달 — 모든 슬롯이 정각이고 timezone 이 Asia/Seoul 고정):
+  //  1) 자정 wraparound 보정 없음 (예: 00:10 vs 23:50). v1.5 — 받아들임.
+  //  2) 반시간 오프셋 timezone 이나 HH:30 daily_time 이 생기면, 슬롯이 인접 두 틱과
+  //     각각 정확히 1800초 떨어져 더블파이어 가능. timezone/시각 선택 UI 도입 시 함께 처리.
   const userIds: string[] = [];
   for (const row of prefs ?? []) {
     const times = deriveScheduleTimes(
