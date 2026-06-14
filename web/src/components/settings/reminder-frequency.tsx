@@ -38,12 +38,14 @@ export function ReminderFrequency({ initialCount }: { initialCount: number }) {
       <h2 className="px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
         알림 횟수
       </h2>
-      <div className="overflow-hidden rounded-2xl border bg-card">
+      <div role="radiogroup" aria-label="알림 횟수" className="overflow-hidden rounded-2xl border bg-card">
         {OPTIONS.map((opt, i) => {
           const active = count === opt.value;
           return (
             <button
               key={opt.value}
+              role="radio"
+              aria-checked={active}
               type="button"
               onClick={() => select(opt.value)}
               disabled={saving}
