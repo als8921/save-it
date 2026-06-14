@@ -161,8 +161,10 @@ async function recordSent(
 
 export async function pickDailyRemindCandidates(
   userId: string,
-  supabaseOverride?: Supabase
+  supabaseOverride?: Supabase,
+  options: { record?: boolean } = {}
 ): Promise<RemindCandidate[]> {
+  const { record = true } = options;
   const supabase = supabaseOverride ?? (await createClient());
   const limit = await resolveLimit(supabase, userId);
   const now = new Date();
@@ -188,12 +190,14 @@ export async function pickDailyRemindCandidates(
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 
-  // 4. record send
-  await recordSent(
-    supabase,
-    userId,
-    scored.map((s) => s.link.id)
-  );
+  // 4. record send (테스트 미리보기 등에서는 record:false 로 이력·TTL 영향 없이 호출)
+  if (record) {
+    await recordSent(
+      supabase,
+      userId,
+      scored.map((s) => s.link.id)
+    );
+  }
 
   return scored;
 }

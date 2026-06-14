@@ -22,3 +22,11 @@ export const DEFAULT_MAX_ITEMS = 5;
 // Must match DB enums (reminder_mode, reminder_channel) in 00004_reminders.sql.
 export const REMIND_MODE_DAILY = "daily" as const;
 export const REMIND_CHANNEL_DASHBOARD = "dashboard" as const;
+export const REMIND_CHANNEL_PUSH = "push" as const;
+
+// 대표(hero) 링크 연속 중복 방지: 최근 N일간 대표였던 링크는 제외
+export const HERO_COOLDOWN_DAYS = 3;
+
+// 하루 알림 횟수별 프리셋 시각 (로컬 시각, 정각). 아침은 user의 daily_time 사용.
+export const DAILY_PRESET_AFTERNOON = "13:00:00" as const;
+export const DAILY_PRESET_EVENING = "21:00:00" as const;
