@@ -1,4 +1,10 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { RemindCandidate } from "./picker";
+import {
+  HERO_COOLDOWN_DAYS,
+  REMIND_CHANNEL_PUSH,
+  REMIND_MODE_DAILY,
+} from "./constants";
 
 export interface ReminderPayload {
   title: string;
@@ -41,4 +47,38 @@ export function buildReminderNotification(
   const rest = candidates.length - 1;
   const body = rest > 0 ? `저장한 링크 · 외 ${rest}개` : "저장한 링크";
   return { hero, payload: { title: heroTitle(hero), body, url: "/today" } };
+}
+
+/** 최근 HERO_COOLDOWN_DAYS 일간 대표(channel='push')로 보낸 link_id 목록 */
+export async function fetchRecentHeroLinkIds(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<string[]> {
+  const since = new Date(
+    Date.now() - HERO_COOLDOWN_DAYS * 24 * 60 * 60 * 1000
+  ).toISOString();
+  const { data } = await supabase
+    .from("link_reminders")
+    .select("link_id")
+    .eq("user_id", userId)
+    .eq("channel", REMIND_CHANNEL_PUSH)
+    .gte("sent_at", since);
+  return (data ?? []).map((r) => r.link_id as string);
+}
+
+/** 대표 링크 발송 이력을 channel='push' 로 기록 */
+export async function recordHeroSent(
+  supabase: SupabaseClient,
+  userId: string,
+  linkId: string
+): Promise<void> {
+  const { error } = await supabase.from("link_reminders").insert({
+    link_id: linkId,
+    user_id: userId,
+    channel: REMIND_CHANNEL_PUSH,
+    mode: REMIND_MODE_DAILY,
+  });
+  if (error) {
+    console.error("[remind] recordHeroSent failed:", error.message);
+  }
 }
