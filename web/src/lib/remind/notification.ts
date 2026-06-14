@@ -30,7 +30,8 @@ function hostOf(url: string): string {
 function heroTitle(c: RemindCandidate): string {
   const raw = c.link.title?.trim();
   const base = raw && raw.length > 0 ? raw : hostOf(c.link.url);
-  return base.length > TITLE_MAX ? base.slice(0, TITLE_MAX - 1) + "…" : base;
+  const chars = [...base];
+  return chars.length > TITLE_MAX ? chars.slice(0, TITLE_MAX - 1).join("") + "…" : base;
 }
 
 /**
@@ -62,8 +63,9 @@ export async function fetchRecentHeroLinkIds(
     .select("link_id")
     .eq("user_id", userId)
     .eq("channel", REMIND_CHANNEL_PUSH)
+    .eq("mode", REMIND_MODE_DAILY)
     .gte("sent_at", since);
-  return (data ?? []).map((r) => r.link_id as string);
+  return [...new Set((data ?? []).map((r) => r.link_id as string))];
 }
 
 /** 대표 링크 발송 이력을 channel='push' 로 기록 */

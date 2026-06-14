@@ -78,6 +78,15 @@ describe("buildReminderNotification", () => {
     expect(n?.payload.title.endsWith("…")).toBe(true);
   });
 
+  it("긴 이모지 제목도 깨지지 않게 트림", () => {
+    const n = buildReminderNotification([cand("a", "😀".repeat(80), 0.9)], []);
+    const title = n!.payload.title;
+    expect([...title].length).toBe(60);
+    expect(title.endsWith("…")).toBe(true);
+    // 마지막 문자(… 직전)가 온전한 이모지인지: 깨진 반쪽 surrogate가 아님
+    expect(title.codePointAt([...title].length - 2)).toBe("😀".codePointAt(0));
+  });
+
   it("url 은 항상 /today", () => {
     const n = buildReminderNotification([cand("a", "A", 0.9)], []);
     expect(n?.payload.url).toBe("/today");
