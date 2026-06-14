@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { pickDailyRemindCandidates } from "@/lib/remind/picker";
 import { sendToSubscription, type SubscriptionRow } from "@/lib/push/send";
+import { deriveScheduleTimes } from "@/lib/remind/schedule";
+import {
+  buildReminderNotification,
+  fetchRecentHeroLinkIds,
+  recordHeroSent,
+} from "@/lib/remind/notification";
 
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
@@ -14,24 +20,26 @@ export async function GET(req: Request) {
   }
 
   const supabase = createServiceClient();
-
-  // 각 사용자의 timezone 기준 현재 시각과 daily_time을 비교 (±30분 윈도우).
-  // wraparound (자정 근처) 보정은 v1.5 — 받아들임.
   const now = new Date();
 
   const { data: prefs } = await supabase
     .from("user_reminder_prefs")
-    .select("user_id, daily_time, timezone")
+    .select("user_id, daily_time, daily_count, timezone")
     .eq("daily_enabled", true);
 
+  // 사용자별 파생 시각 목록 중 하나라도 현재 로컬 시각 ±30분이면 발송 대상
   const userIds: string[] = [];
   for (const row of prefs ?? []) {
-    const localNow = formatLocalTime(now, row.timezone as string);
-    const diffSec = Math.abs(
-      timeStringToSeconds(row.daily_time as string) -
-        timeStringToSeconds(localNow)
+    const times = deriveScheduleTimes(
+      row.daily_time as string,
+      (row.daily_count as number) ?? 1
     );
-    if (diffSec <= 1800) userIds.push(row.user_id as string);
+    const localNow = formatLocalTime(now, row.timezone as string);
+    const localSec = timeStringToSeconds(localNow);
+    const hit = times.some(
+      (t) => Math.abs(timeStringToSeconds(t) - localSec) <= 1800
+    );
+    if (hit) userIds.push(row.user_id as string);
   }
 
   let sent = 0;
@@ -41,7 +49,9 @@ export async function GET(req: Request) {
   for (const userId of userIds) {
     try {
       const candidates = await pickDailyRemindCandidates(userId, supabase);
-      if (candidates.length === 0) {
+      const recentHeroes = await fetchRecentHeroLinkIds(supabase, userId);
+      const notif = buildReminderNotification(candidates, recentHeroes);
+      if (!notif) {
         skipped++;
         continue;
       }
@@ -56,21 +66,17 @@ export async function GET(req: Request) {
         continue;
       }
 
-      const payload = {
-        title: "오늘 다시 볼 링크",
-        body: `${candidates.length}개가 있어요`,
-        url: "/today",
-      };
-
       for (const row of subs) {
         const outcome = await sendToSubscription(
           supabase,
           row as SubscriptionRow,
-          payload
+          notif.payload
         );
         if (outcome.delivered) sent++;
         if (outcome.removed) removed++;
       }
+
+      await recordHeroSent(supabase, userId, notif.hero.link.id);
     } catch (err) {
       console.error(`[cron] user ${userId} failed:`, err);
     }
