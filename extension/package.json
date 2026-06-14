@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "wxt",
     "build": "wxt build",
-    "zip": "wxt zip"
+    "zip": "wxt zip",
+    "test": "vitest run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2",
@@ -24,6 +25,7 @@
     "@vitejs/plugin-react": "^4.4.1",
     "@wxt-dev/module-react": "^1",
     "typescript": "^5",
+    "vitest": "^3.2.6",
     "wxt": "0.19.16"
   }
 }
