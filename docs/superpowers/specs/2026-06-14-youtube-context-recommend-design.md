@@ -69,12 +69,12 @@ extractVideoId(url: string): string | null
 pickYouTubeRecommendations(
   links: Link[],
   currentVideoId: string | null,
-  limit = 12,
+  limit = 3,
 ): Link[]
 //   1) isYouTubeLink 필터
 //   2) extractVideoId === currentVideoId 인 항목 제외 (지금 보는 영상)
 //   3) 정렬: 미열람(is_read=false) 우선 → priority desc → created_at desc
-//   4) 상위 limit개
+//   4) 상위 limit개 (기본 3개 — 한눈에 들어오는 소수만 노출)
 ```
 
 이 함수들이 로직의 핵심이며 단위 테스트 대상이다(§7).
@@ -92,7 +92,7 @@ pickYouTubeRecommendations(
       └─ watch & 로그인
             → supabase.from("links").select("*")
                  .or("url.ilike.%youtube.com%,url.ilike.%youtu.be%")
-            → pickYouTubeRecommendations(links, currentVideoId)
+            → pickYouTubeRecommendations(links, currentVideoId)  // 상위 3개
             → 0개면 숨김 / 1개+면 위젯 표시(자동 펼침)
   → 카드 클릭
       → window.open(link.url, "_blank")
@@ -139,11 +139,12 @@ pickYouTubeRecommendations(
 │ 저장한 유튜브 영상   3   ⌄   │  ← 헤더(제목·개수·접기)
 ├─────────────────────────────┤
 │ [썸네일] 제목…              │
-│          P · 채널폴더  ●미열람│  ← 카드(썸네일+제목+PARA배지+미열람점)
+│          P · 폴더명   ●미열람 │  ← 카드(썸네일+제목+PARA배지+미열람점)
 │ [썸네일] 제목…              │
-│ …                           │  ← 스크롤
+│ [썸네일] 제목…              │  ← 최대 3개, 스크롤 거의 불필요
 └─────────────────────────────┘
 ```
+- 최대 3개만 노출하므로 목록이 짧다(고정 높이 스크롤은 안전장치로만).
 - 썸네일: `https://i.ytimg.com/vi/<videoId>/mqdefault.jpg`. id 없으면 파비콘 폴백.
 - PARA 배지: 기존 `lib/para` 토큰 재사용. 미열람은 작은 점 표시.
 
