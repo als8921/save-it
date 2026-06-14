@@ -19,6 +19,9 @@ export interface ReminderNotification {
 
 const TITLE_MAX = 60;
 
+// 알림 제목(헤드라인). 본문에 대표 링크 제목 + 남은 개수를 담는다.
+const HEADLINE = "다시 볼 링크가 있어요!";
+
 function hostOf(url: string): string {
   try {
     return new URL(url).hostname || "저장한 링크";
@@ -46,8 +49,9 @@ export function buildReminderNotification(
   const recent = new Set(recentHeroLinkIds);
   const hero = candidates.find((c) => !recent.has(c.link.id)) ?? candidates[0];
   const rest = candidates.length - 1;
-  const body = rest > 0 ? `저장한 링크 · 외 ${rest}개` : "저장한 링크";
-  return { hero, payload: { title: heroTitle(hero), body, url: "/today" } };
+  const title = heroTitle(hero);
+  const body = rest > 0 ? `${title} 외 ${rest}개` : title;
+  return { hero, payload: { title: HEADLINE, body, url: "/today" } };
 }
 
 /** 최근 HERO_COOLDOWN_DAYS 일간 대표(channel='push')로 보낸 link_id 목록 */
