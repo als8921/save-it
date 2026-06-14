@@ -2,12 +2,19 @@ import { Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/actions/sign-out-button";
 import { PushToggle } from "@/components/settings/push-toggle";
+import { ReminderFrequency } from "@/components/settings/reminder-frequency";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const { data: prefs } = await supabase
+    .from("user_reminder_prefs")
+    .select("daily_count")
+    .eq("user_id", user?.id ?? "")
+    .maybeSingle();
 
   return (
     <div
@@ -20,6 +27,8 @@ export default async function SettingsPage() {
       </header>
 
       <PushToggle />
+
+      <ReminderFrequency initialCount={prefs?.daily_count ?? 1} />
 
       <section className="space-y-2">
         <h2 className="px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
