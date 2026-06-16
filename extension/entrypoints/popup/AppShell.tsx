@@ -1,10 +1,11 @@
-import { Bookmark, ChevronLeft, LogOut, Plus, X } from "lucide-react";
+import { Bookmark, ChevronLeft, LogOut, Plus, Settings, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { supabase } from "../../lib/supabase";
 import { BrowseView } from "./BrowseView";
 import { SaveView } from "./SaveView";
+import { SettingsView } from "./SettingsView";
 
-type Mode = "browse" | "add";
+type Mode = "browse" | "add" | "settings";
 
 interface AppShellProps {
   userId: string;
@@ -34,6 +35,11 @@ export function AppShell({
     setMode("browse");
   }
 
+  function goToSettings() {
+    setPendingFolderId(null);
+    setMode("settings");
+  }
+
   async function handleSignOut() {
     await supabase.auth.signOut();
   }
@@ -51,6 +57,16 @@ export function AppShell({
           </span>
           <span className="text-sm font-semibold">Save It</span>
           <span className="flex-1" />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={goToSettings}
+            aria-label="설정"
+            className="h-7 w-7 text-muted-foreground"
+          >
+            <Settings className="h-3.5 w-3.5" />
+          </Button>
           <Button
             type="button"
             size="xs"
@@ -85,7 +101,9 @@ export function AppShell({
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="text-sm font-semibold">새 링크 추가</span>
+          <span className="text-sm font-semibold">
+            {mode === "settings" ? "설정" : "새 링크 추가"}
+          </span>
           <span className="flex-1" />
           {onClose && (
             <Button
@@ -110,6 +128,8 @@ export function AppShell({
           initialFolderId={pendingFolderId}
           onSaved={onSaved}
         />
+      ) : mode === "settings" ? (
+        <SettingsView />
       ) : (
         <BrowseView userId={userId} onAddLinkToFolder={goToAdd} />
       )}
