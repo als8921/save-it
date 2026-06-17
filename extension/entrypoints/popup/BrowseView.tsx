@@ -561,7 +561,7 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
           <button
             type="button"
             onClick={openNewFolder}
-            className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
+            className="flex w-full items-center justify-end gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
           >
             <FolderPlus className="h-3 w-3" />
             <span>
