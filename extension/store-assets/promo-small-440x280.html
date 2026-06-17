@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 440px; height: 280px; overflow: hidden; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+          "Pretendard", "Noto Sans KR", sans-serif;
+        background: linear-gradient(160deg, #ffffff 0%, #f6f9ff 55%, #edf2fb 100%);
+        position: relative; color: #0f172a; -webkit-font-smoothing: antialiased;
+        word-break: keep-all;
+      }
+      .glow { position: absolute; border-radius: 50%; filter: blur(54px); }
+      .glow.a { width: 300px; height: 300px; right: -90px; top: -120px; background: #cfe0ff; opacity: .6; }
+      .glow.b { width: 240px; height: 240px; left: -110px; bottom: -130px; background: #e6eaff; opacity: .5; }
+      .wrap {
+        position: relative; z-index: 1; height: 100%;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        text-align: center; padding: 0 28px;
+      }
+      .mark {
+        width: 76px; height: 76px; border-radius: 20px; background: #fff;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 14px 30px rgba(37,99,235,.18); border: 1px solid #eef0f3;
+        margin-bottom: 18px;
+      }
+      .mark img { width: 50px; height: 50px; display: block; }
+      .name { font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+      .tag { margin-top: 10px; font-size: 19px; font-weight: 700; letter-spacing: -.01em; }
+      .sub { margin-top: 7px; font-size: 13px; font-weight: 500; color: #64748b; }
+    </style>
+  </head>
+  <body>
+    <div class="glow a"></div>
+    <div class="glow b"></div>
+    <div class="wrap">
+      <div class="mark"><img src="../public/icon/128.png" alt="SaveIt" /></div>
+      <div class="name">SaveIt</div>
+      <div class="tag">저장한 링크, 잊지 않게.</div>
+      <div class="sub">PARA로 정리 · 매일 ‘다시 볼 링크’ 알림</div>
+    </div>
+  </body>
+</html>
