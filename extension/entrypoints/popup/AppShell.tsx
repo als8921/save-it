@@ -59,6 +59,15 @@ export function AppShell({
           <span className="flex-1" />
           <Button
             type="button"
+            size="xs"
+            onClick={() => goToAdd(null)}
+            className="h-7 gap-1 px-2.5"
+          >
+            <Plus className="h-3 w-3" />
+            추가
+          </Button>
+          <Button
+            type="button"
             variant="ghost"
             size="icon"
             onClick={goToSettings}
@@ -66,15 +75,6 @@ export function AppShell({
             className="h-7 w-7 text-muted-foreground"
           >
             <Settings className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            type="button"
-            size="xs"
-            onClick={() => goToAdd(null)}
-            className="h-7 gap-1 px-2.5"
-          >
-            <Plus className="h-3 w-3" />
-            추가
           </Button>
           {onClose && (
             <Button
