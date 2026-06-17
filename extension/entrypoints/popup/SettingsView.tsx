@@ -1,6 +1,8 @@
-import { Bookmark } from "lucide-react";
+import { Bookmark, LogOut, Mail } from "lucide-react";
 import type { ReactNode } from "react";
 import { Switch } from "../../components/ui/switch";
+import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../lib/useAuth";
 import { useSyncedState } from "../../lib/useSyncedState";
 
 function YouTubeLogo() {
@@ -54,8 +56,15 @@ function SettingSection({ label, children }: { label: string; children: ReactNod
 }
 
 export function SettingsView() {
+  const auth = useAuth();
   const [alwaysOn, setAlwaysOn] = useSyncedState("floating_always_on", true);
   const [ytEnabled, setYtEnabled] = useSyncedState("yt_widget_enabled", true);
+
+  const email = auth.status === "authenticated" ? auth.session.user.email : null;
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+  }
 
   return (
     <div className="flex flex-col gap-3 px-3 py-3">
@@ -84,6 +93,25 @@ export function SettingsView() {
           checked={ytEnabled}
           onCheckedChange={setYtEnabled}
         />
+      </SettingSection>
+
+      <SettingSection label="계정">
+        <div className="flex flex-col gap-2.5 rounded-xl border border-border bg-card px-3 py-2.5">
+          {email && (
+            <div className="flex items-center gap-2 text-[12px]">
+              <Mail className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <span className="truncate text-muted-foreground">{email}</span>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            로그아웃
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </SettingSection>
     </div>
   );

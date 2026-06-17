@@ -1,6 +1,5 @@
-import { Bookmark, ChevronLeft, LogOut, Plus, Settings, X } from "lucide-react";
+import { Bookmark, ChevronLeft, Plus, Settings, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
-import { supabase } from "../../lib/supabase";
 import { BrowseView } from "./BrowseView";
 import { SaveView } from "./SaveView";
 import { SettingsView } from "./SettingsView";
@@ -38,10 +37,6 @@ export function AppShell({
   function goToSettings() {
     setPendingFolderId(null);
     setMode("settings");
-  }
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
   }
 
   return (
@@ -133,17 +128,6 @@ export function AppShell({
       ) : (
         <BrowseView userId={userId} onAddLinkToFolder={goToAdd} />
       )}
-
-      <footer className="flex items-center justify-end border-t px-4 py-2">
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className="flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
-        >
-          로그아웃
-          <LogOut className="h-3 w-3" />
-        </button>
-      </footer>
     </div>
   );
 }
