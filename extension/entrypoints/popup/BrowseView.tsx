@@ -414,68 +414,6 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
         })}
       </div>
 
-      {/* New folder shortcut — only when filtering by a real PARA category (not 미지정) */}
-      {filter && filter !== "unassigned" &&
-        (showNewFolder ? (
-          <div className="space-y-2 rounded-lg bg-muted/40 p-2.5">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-medium">새 폴더</span>
-              <span className="text-[10px] text-muted-foreground">
-                {PARA_TOKENS[filter].label}
-              </span>
-              <span className="flex-1" />
-              <button
-                type="button"
-                onClick={cancelNewFolder}
-                aria-label="취소"
-                className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-            <div className="flex gap-1.5">
-              <Input
-                autoFocus
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                placeholder="폴더 이름"
-                className="h-8 text-xs"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleCreateFolder();
-                  if (e.key === "Escape") cancelNewFolder();
-                }}
-              />
-              <Button
-                type="button"
-                size="sm"
-                onClick={handleCreateFolder}
-                disabled={creatingFolder || !newFolderName.trim()}
-              >
-                {creatingFolder ? "…" : "생성"}
-              </Button>
-            </div>
-            {folderError && (
-              <p className="border-l-2 border-destructive pl-2 text-xs text-destructive">
-                {folderError}
-              </p>
-            )}
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={openNewFolder}
-            className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
-          >
-            <FolderPlus className="h-3 w-3" />
-            <span>
-              <span className="text-muted-foreground/80">
-                {PARA_TOKENS[filter].label}
-              </span>
-              <span className="ml-1">폴더 추가</span>
-            </span>
-          </button>
-        ))}
-
       {loading && (
         <p className="py-4 text-center text-xs text-muted-foreground">
           불러오는 중…
@@ -572,6 +510,68 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
           )}
         </div>
       )}
+
+      {/* New folder shortcut — 폴더 목록 가장 아래. 실제 PARA 카테고리 필터일 때만 (미지정 제외) */}
+      {filter && filter !== "unassigned" &&
+        (showNewFolder ? (
+          <div className="space-y-2 rounded-lg bg-muted/40 p-2.5">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-medium">새 폴더</span>
+              <span className="text-[10px] text-muted-foreground">
+                {PARA_TOKENS[filter].label}
+              </span>
+              <span className="flex-1" />
+              <button
+                type="button"
+                onClick={cancelNewFolder}
+                aria-label="취소"
+                className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+            <div className="flex gap-1.5">
+              <Input
+                autoFocus
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder="폴더 이름"
+                className="h-8 text-xs"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleCreateFolder();
+                  if (e.key === "Escape") cancelNewFolder();
+                }}
+              />
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleCreateFolder}
+                disabled={creatingFolder || !newFolderName.trim()}
+              >
+                {creatingFolder ? "…" : "생성"}
+              </Button>
+            </div>
+            {folderError && (
+              <p className="border-l-2 border-destructive pl-2 text-xs text-destructive">
+                {folderError}
+              </p>
+            )}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={openNewFolder}
+            className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
+          >
+            <FolderPlus className="h-3 w-3" />
+            <span>
+              <span className="text-muted-foreground/80">
+                {PARA_TOKENS[filter].label}
+              </span>
+              <span className="ml-1">폴더 추가</span>
+            </span>
+          </button>
+        ))}
 
       <ConfirmDialog
         open={confirmState !== null}
