@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Play } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../lib/useAuth";
+import { useSyncedState } from "../../lib/useSyncedState";
 import { PARA_TOKENS } from "../../lib/para";
 import {
   extractVideoId,
@@ -21,6 +22,7 @@ const BRAND = "var(--color-para-project-fg)";
 
 export function YouTubeRecommendWidget() {
   const auth = useAuth();
+  const [ytEnabled] = useSyncedState("yt_widget_enabled", true);
   const [url, setUrl] = useState(location.href);
   const urlRef = useRef(url);
   const [fullscreen, setFullscreen] = useState(false);
@@ -138,6 +140,7 @@ export function YouTubeRecommendWidget() {
   }
 
   if (auth.status !== "authenticated") return null;
+  if (!ytEnabled) return null;
   if (!isWatch || fullscreen) return null;
   if (recs.length === 0) return null;
 

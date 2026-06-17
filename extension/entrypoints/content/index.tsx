@@ -2,6 +2,7 @@ import "../../lib/styles/globals.css";
 import { Bookmark, X } from "lucide-react";
 import ReactDOM from "react-dom/client";
 import { useAuth } from "../../lib/useAuth";
+import { useSyncedState } from "../../lib/useSyncedState";
 import { AppShell } from "../popup/AppShell";
 import { LoginView } from "../popup/LoginView";
 
@@ -43,6 +44,7 @@ function clampPos(p: { top: number; right: number }) {
 }
 
 function FloatingWidget() {
+  const [alwaysOn] = useSyncedState("floating_always_on", true);
   const [pos, setPos] = useState(DEFAULT_POS);
   const [open, setOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -164,6 +166,8 @@ function FloatingWidget() {
   };
 
   if (fullscreen) return null;
+  // 상시 표시 해제 시: 페이지에 떠 있지 않고, 확장 프로그램 팝업으로만 사용
+  if (!alwaysOn) return null;
 
   return (
     <div

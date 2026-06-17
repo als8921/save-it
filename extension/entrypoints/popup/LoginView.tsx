@@ -4,29 +4,54 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { supabase } from "../../lib/supabase";
 
+type Mode = "login" | "signup";
+
 export function LoginView() {
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+
+  const isSignup = mode === "signup";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setInfo("");
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    if (isSignup) {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+      setLoading(false);
+      // 세션이 바로 생기면 onAuthStateChange 가 화면을 전환한다.
+      // 이메일 확인이 필요한 설정이면 세션이 없으므로 안내한다.
+      if (!data.session) {
+        setInfo("확인 메일을 보냈어요. 메일에서 인증한 뒤 로그인해 주세요.");
+        setMode("login");
+      }
+      return;
+    }
 
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setError(error.message);
       setLoading(false);
       return;
     }
-
     setLoading(false);
+  }
+
+  function switchMode(next: Mode) {
+    setMode(next);
+    setError("");
+    setInfo("");
   }
 
   return (
@@ -71,7 +96,13 @@ export function LoginView() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
             required
+            minLength={isSignup ? 6 : undefined}
           />
+          {isSignup && (
+            <p className="text-[11px] text-muted-foreground">
+              비밀번호는 6자 이상이어야 해요.
+            </p>
+          )}
         </div>
 
         {error && (
@@ -80,13 +111,50 @@ export function LoginView() {
           </p>
         )}
 
+        {info && (
+          <p
+            className="border-l-2 pl-2 text-xs text-muted-foreground"
+            style={{ borderColor: "var(--color-para-project-fg)" }}
+          >
+            {info}
+          </p>
+        )}
+
         <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "로그인 중…" : "로그인"}
+          {loading
+            ? isSignup
+              ? "가입 중…"
+              : "로그인 중…"
+            : isSignup
+              ? "회원가입"
+              : "로그인"}
         </Button>
       </form>
 
       <p className="text-[11px] leading-snug text-muted-foreground">
-        계정이 없다면 <span className="text-foreground">save-it</span> 웹사이트에서 가입해 주세요.
+        {isSignup ? (
+          <>
+            이미 계정이 있나요?{" "}
+            <button
+              type="button"
+              onClick={() => switchMode("login")}
+              className="font-medium text-foreground underline underline-offset-2 cursor-pointer"
+            >
+              로그인
+            </button>
+          </>
+        ) : (
+          <>
+            계정이 없나요?{" "}
+            <button
+              type="button"
+              onClick={() => switchMode("signup")}
+              className="font-medium text-foreground underline underline-offset-2 cursor-pointer"
+            >
+              회원가입
+            </button>
+          </>
+        )}
       </p>
     </div>
   );
