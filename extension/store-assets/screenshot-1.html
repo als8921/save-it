@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1280px; height: 800px; overflow: hidden; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+          "Pretendard", "Noto Sans KR", sans-serif;
+        background: radial-gradient(120% 120% at 80% 0%, #3b82f6 0%, #2563eb 42%, #1d4ed8 100%);
+        position: relative;
+        color: #fff;
+        -webkit-font-smoothing: antialiased;
+        word-break: keep-all;
+      }
+      /* soft glows */
+      .glow { position: absolute; border-radius: 50%; filter: blur(60px); opacity: .5; }
+      .glow.a { width: 520px; height: 520px; left: -120px; top: -140px; background: #60a5fa; }
+      .glow.b { width: 420px; height: 420px; right: 240px; bottom: -160px; background: #1e3a8a; opacity:.55; }
+
+      .stage { position: relative; z-index: 1; display: flex; height: 100%; align-items: center; }
+
+      /* ---- Left copy ---- */
+      .left { width: 660px; padding: 0 0 0 84px; }
+      .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 34px; }
+      .brand .mark {
+        width: 40px; height: 40px; border-radius: 11px; background: rgba(255,255,255,.16);
+        display: flex; align-items: center; justify-content: center;
+        border: 1px solid rgba(255,255,255,.28);
+      }
+      .brand .name { font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+      h1 {
+        font-size: 66px; line-height: 1.08; font-weight: 800; letter-spacing: -.03em;
+        margin-bottom: 22px;
+      }
+      .sub { font-size: 23px; line-height: 1.5; color: rgba(255,255,255,.86); max-width: 520px; font-weight: 500; }
+      .pills { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 38px; }
+      .pill {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22);
+        padding: 9px 15px 9px 11px; border-radius: 999px; font-size: 16px; font-weight: 600;
+      }
+      .pill .ck {
+        width: 18px; height: 18px; border-radius: 50%; background: #fff; color: #2563eb;
+        display: flex; align-items: center; justify-content: center; flex: none;
+      }
+
+      /* ---- Right popup mockup ---- */
+      .right { flex: 1; display: flex; justify-content: center; align-items: center; }
+      .popup {
+        width: 384px; background: #fff; color: #0a0a0a; border-radius: 22px; overflow: hidden;
+        box-shadow: 0 40px 90px rgba(13,23,55,.42), 0 10px 26px rgba(13,23,55,.28);
+        transform: rotate(-1.2deg);
+      }
+      .p-head { display: flex; align-items: center; gap: 9px; padding: 13px 14px; border-bottom: 1px solid #ededed; }
+      .p-head .logo { width: 28px; height: 28px; border-radius: 9px; background: #2563eb; display:flex; align-items:center; justify-content:center; }
+      .p-head .title { font-size: 15px; font-weight: 700; }
+      .grow { flex: 1; }
+      .p-head .add { background: #2563eb; color:#fff; font-size: 13px; font-weight:600; padding: 6px 11px; border-radius: 8px; display:flex; align-items:center; gap:5px; }
+      .p-head .gear { color: #9a9a9a; display:flex; }
+
+      .chips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; padding: 13px 13px 6px; }
+      .chip { display:flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 0; border-radius: 10px; background: #f4f4f5; border: 1px solid transparent; }
+      .chip .l { font-size: 14px; font-weight: 800; line-height: 1; color: #a1a1aa; }
+      .chip .t { font-size: 9px; line-height: 1; color: #a1a1aa; letter-spacing: -.02em; }
+
+      .body { padding: 8px 13px 16px; }
+      .group { margin-top: 12px; }
+      .group:first-child { margin-top: 4px; }
+      .ghead { display: flex; align-items: center; gap: 6px; padding: 0 4px 7px; }
+      .ghead .gl { font-size: 10px; font-weight: 800; line-height: 1; }
+      .ghead .gt { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: #9a9a9a; text-transform: uppercase; }
+      .folder { display: flex; align-items: center; gap: 10px; padding: 10px 11px; border-radius: 10px; }
+      .folder.active { background: #f3f4f6; }
+      .folder .fi { color: #9a9a9a; display:flex; }
+      .folder .fn { font-size: 14px; font-weight: 600; }
+      .links { padding: 2px 0 2px 16px; }
+      .row { display:flex; align-items:center; gap: 9px; padding: 7px 8px; border-radius: 8px; }
+      .row .fav { width: 18px; height: 18px; border-radius: 5px; flex:none; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px; font-weight:700; }
+      .row .rt { font-size: 12px; font-weight: 600; color:#18181b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .row .meta { font-size: 10px; color:#9a9a9a; font-family: ui-monospace, monospace; margin-top: 1px; }
+      .dot { width: 4px; height: 4px; border-radius: 50%; background:#18181b; display:inline-block; margin-right: 4px; vertical-align: middle; }
+    </style>
+  </head>
+  <body>
+    <div class="glow a"></div>
+    <div class="glow b"></div>
+    <div class="stage">
+      <div class="left">
+        <div class="brand">
+          <span class="mark">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M7 3h10a2 2 0 0 1 2 2v16l-7-4-7 4V5a2 2 0 0 1 2-2z"/></svg>
+          </span>
+          <span class="name">SaveIt</span>
+        </div>
+        <h1>저장한 링크,<br />잊지 않게.</h1>
+        <p class="sub">링크를 PARA로 정리하고, 매일 ‘다시 볼 링크’ 알림으로 다시 만나요.</p>
+        <div class="pills">
+          <span class="pill"><span class="ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>원클릭 저장</span>
+          <span class="pill"><span class="ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>PARA 자동 분류</span>
+          <span class="pill"><span class="ck"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>유튜브 추천 · 매일 리마인드</span>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="popup">
+          <div class="p-head">
+            <span class="logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M7 3h10a2 2 0 0 1 2 2v16l-7-4-7 4V5a2 2 0 0 1 2-2z"/></svg></span>
+            <span class="title">Save It</span>
+            <span class="grow"></span>
+            <span class="add"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>추가</span>
+            <span class="gear"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+          </div>
+
+          <div class="chips">
+            <div class="chip"><span class="l" style="color:#2563eb">P</span><span class="t" style="color:#2563eb">Projects</span></div>
+            <div class="chip"><span class="l" style="color:#f59e0b">A</span><span class="t" style="color:#f59e0b">Areas</span></div>
+            <div class="chip"><span class="l" style="color:#ec4899">R</span><span class="t" style="color:#ec4899">Resources</span></div>
+            <div class="chip"><span class="l">A</span><span class="t">Archives</span></div>
+            <div class="chip"><span class="l">·</span><span class="t">미지정</span></div>
+          </div>
+
+          <div class="body">
+            <div class="group">
+              <div class="ghead"><span class="gl" style="color:#2563eb">P</span><span class="gt">Projects</span></div>
+              <div class="folder active">
+                <span class="fi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 14l1.5-2.5h13M2 6h6l2 3h9a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6z"/></svg></span>
+                <span class="fn">사이드 프로젝트</span>
+              </div>
+              <div class="links">
+                <div class="row">
+                  <span class="fav" style="background:#000">G</span>
+                  <span><div class="rt">React 서버 컴포넌트 가이드</div><div class="meta"><span class="dot"></span>github.com</div></span>
+                </div>
+                <div class="row">
+                  <span class="fav" style="background:#ff0000"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M9.5 8.5v7l6-3.5z"/></svg></span>
+                  <span><div class="rt">WXT로 크롬 확장 만들기</div><div class="meta">youtube.com</div></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="group">
+              <div class="ghead"><span class="gl" style="color:#f59e0b">A</span><span class="gt">Areas</span></div>
+              <div class="folder">
+                <span class="fi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 14l1.5-2.5h13M2 6h6l2 3h9a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6z"/></svg></span>
+                <span class="fn">건강 · 운동</span>
+              </div>
+            </div>
+
+            <div class="group">
+              <div class="ghead"><span class="gl" style="color:#6b7280">·</span><span class="gt">미지정</span></div>
+              <div class="folder">
+                <span class="fi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>
+                <span class="fn">미지정</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
