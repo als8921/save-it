@@ -65,14 +65,15 @@
         transform: rotate(2.2deg); z-index: 2;
       }
       .yt-head { display: flex; align-items: center; gap: 7px; padding: 12px 13px; border-bottom: 1px solid #ededed; }
-      .yt-head .pl0 { width: 18px; height: 18px; border-radius: 5px; background: #ff0000; display:flex; align-items:center; justify-content:center; flex:none; }
+      .yt-head .ytlogo { display: flex; flex: none; }
       .yt-head .ht { font-size: 12.5px; font-weight: 700; }
       .yt-head .cnt { font-size: 11px; color: #9a9a9a; font-weight: 600; }
       .yt-list { padding: 6px; display: flex; flex-direction: column; gap: 2px; }
       .yt-item { display: flex; gap: 10px; padding: 7px; border-radius: 11px; align-items: center; }
       .yt-item:first-child { background: #f4f4f5; }
-      .thumb { width: 64px; height: 40px; border-radius: 8px; background: linear-gradient(135deg,#374151,#0f172a); display:flex; align-items:center; justify-content:center; flex:none; }
-      .thumb .pl { width: 22px; height: 22px; border-radius: 6px; background: #ff0000; display:flex; align-items:center; justify-content:center; }
+      .thumb { width: 66px; height: 40px; border-radius: 8px; position: relative; overflow: hidden; flex: none; }
+      .thumb .play { position: absolute; inset: 0; margin: auto; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,.46); display:flex; align-items:center; justify-content:center; }
+      .thumb .dur { position: absolute; right: 3px; bottom: 3px; background: rgba(0,0,0,.8); color: #fff; font-size: 8px; font-weight: 600; line-height: 1; padding: 2px 3px; border-radius: 3px; }
       .vinfo { min-width: 0; }
       .vt { font-size: 12px; font-weight: 600; color: #18181b; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .vmeta { margin-top: 4px; display: flex; align-items: center; gap: 6px; font-size: 10px; color: #9a9a9a; }
@@ -185,28 +186,37 @@
 
         <div class="yt">
           <div class="yt-head">
-            <span class="pl0"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M9.5 8.5v7l6-3.5z"/></svg></span>
+            <span class="ytlogo"><svg width="23" height="23" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></span>
             <span class="ht">저장한 유튜브 영상</span>
             <span class="grow"></span>
             <span class="cnt">3</span>
           </div>
           <div class="yt-list">
             <div class="yt-item">
-              <span class="thumb"><span class="pl"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M9.5 8.5v7l6-3.5z"/></svg></span></span>
+              <span class="thumb" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+                <span class="play"><svg width="9" height="9" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span>
+                <span class="dur">12:04</span>
+              </span>
               <span class="vinfo">
                 <div class="vt">WXT로 크롬 확장 만들기</div>
                 <div class="vmeta">사이드 프로젝트<span class="badge" style="background:#eff6ff;color:#2563eb">P</span></div>
               </span>
             </div>
             <div class="yt-item">
-              <span class="thumb"><span class="pl"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M9.5 8.5v7l6-3.5z"/></svg></span></span>
+              <span class="thumb" style="background:linear-gradient(135deg,#0ea5e9,#22d3ee)">
+                <span class="play"><svg width="9" height="9" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span>
+                <span class="dur">28:30</span>
+              </span>
               <span class="vinfo">
                 <div class="vt">Rust 입문 30분 완성</div>
                 <div class="vmeta">공부<span class="badge" style="background:#fef3c7;color:#f59e0b">A</span></div>
               </span>
             </div>
             <div class="yt-item">
-              <span class="thumb"><span class="pl"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M9.5 8.5v7l6-3.5z"/></svg></span></span>
+              <span class="thumb" style="background:linear-gradient(135deg,#fb7185,#f59e0b)">
+                <span class="play"><svg width="9" height="9" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span>
+                <span class="dur">09:41</span>
+              </span>
               <span class="vinfo">
                 <div class="vt">디자인 시스템 기초</div>
                 <div class="vmeta">읽을거리<span class="badge" style="background:#fce7f3;color:#ec4899">R</span></div>
