@@ -6,7 +6,7 @@ export default defineConfig({
     name: "SaveIt",
     permissions: ["storage", "alarms", "activeTab"],
     host_permissions: [
-      "https://save-it.vercel.app/*",
+      "https://i-save-it.vercel.app/*",
       "https://*.supabase.co/*",
     ],
   },
