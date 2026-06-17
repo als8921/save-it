@@ -277,6 +277,101 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
     },
   ];
 
+  function renderFolderItem(folder: Folder) {
+    const folderLinks = links.filter((l) => l.folder_id === folder.id);
+    const isOpen = selectedFolderId === folder.id;
+    const isUnassigned = folder.para_category === null;
+    return (
+      <li key={folder.id}>
+        {editingFolderId === folder.id ? (
+          <FolderEditForm
+            folder={folder}
+            onCancel={() => setEditingFolderId(null)}
+            onSave={async (patch) => {
+              const ok = await updateFolder(folder.id, patch);
+              if (ok) setEditingFolderId(null);
+            }}
+          />
+        ) : (
+          <div
+            className={cn(
+              "group flex items-stretch rounded-lg transition-colors",
+              isOpen ? "bg-accent" : "hover:bg-accent/50",
+            )}
+          >
+            <button
+              type="button"
+              onClick={() => toggleFolder(folder.id)}
+              aria-expanded={isOpen}
+              className="flex flex-1 items-center gap-2.5 px-3 py-2.5 text-left cursor-pointer"
+            >
+              {isUnassigned ? (
+                <Inbox className="h-4 w-4 shrink-0 text-muted-foreground" />
+              ) : (
+                <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
+              )}
+              <span className="flex-1 truncate text-sm font-medium">
+                {folder.name}
+              </span>
+            </button>
+            {onAddLinkToFolder && (
+              <button
+                type="button"
+                onClick={() => onAddLinkToFolder(folder.id)}
+                aria-label={`${folder.name}에 링크 추가`}
+                title="이 폴더에 링크 추가"
+                className="flex w-8 items-center justify-center text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:text-foreground cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+            )}
+            <div className="flex items-center px-0.5">
+              <KebabMenu
+                items={folderMenuItems(folder, folderLinks.length)}
+                label="폴더 메뉴"
+              />
+            </div>
+          </div>
+        )}
+        {isOpen && (
+          <div className="mb-1 mt-0.5 pl-3">
+            {folderLinks.length === 0 ? (
+              <p className="px-2 py-1.5 text-[11px] italic text-muted-foreground">
+                비어있음
+              </p>
+            ) : (
+              <ul className="space-y-0.5">
+                {folderLinks.map((link) => (
+                  <li key={link.id}>
+                    {editingLinkId === link.id ? (
+                      <LinkEditForm
+                        link={link}
+                        onCancel={() => setEditingLinkId(null)}
+                        onSave={(patch) => {
+                          updateLink(link.id, patch);
+                          setEditingLinkId(null);
+                        }}
+                      />
+                    ) : (
+                      <LinkRow
+                        title={link.title}
+                        host={host(link.url)}
+                        isRead={link.is_read}
+                        priority={link.priority ?? 0}
+                        onClick={() => openLink(link)}
+                        menu={<KebabMenu items={linkMenuItems(link)} label="링크 메뉴" />}
+                      />
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </li>
+    );
+  }
+
   return (
     <div className="space-y-3 px-3 py-3">
       {/* Filter row */}
@@ -438,104 +533,41 @@ export function BrowseView({ userId, onAddLinkToFolder }: BrowseViewProps) {
             <p className="py-6 text-center text-xs italic text-muted-foreground">
               폴더가 없어요
             </p>
-          ) : (
-            <ul className="space-y-1.5">
-              {visibleFolders.map((folder) => {
-                const folderLinks = links.filter(
-                  (l) => l.folder_id === folder.id,
+          ) : filter === null ? (
+            <div className="space-y-3">
+              {[...PARA_ORDER, null].map((cat) => {
+                const group = visibleFolders.filter(
+                  (f) => f.para_category === cat,
                 );
-                const isOpen = selectedFolderId === folder.id;
-                const isUnassigned = folder.para_category === null;
+                if (group.length === 0) return null;
+                const fg = cat ? PARA_TOKENS[cat].fg : UNASSIGNED_TOKEN.fg;
+                const label = cat
+                  ? PARA_TOKENS[cat].label
+                  : UNASSIGNED_TOKEN.label;
+                const letter = cat ? PARA_TOKENS[cat].letter : "·";
                 return (
-                  <li key={folder.id}>
-                    {editingFolderId === folder.id ? (
-                      <FolderEditForm
-                        folder={folder}
-                        onCancel={() => setEditingFolderId(null)}
-                        onSave={async (patch) => {
-                          const ok = await updateFolder(folder.id, patch);
-                          if (ok) setEditingFolderId(null);
-                        }}
-                      />
-                    ) : (
-                      <div
-                        className={cn(
-                          "group flex items-stretch rounded-lg transition-colors",
-                          isOpen ? "bg-accent" : "hover:bg-accent/50",
-                        )}
+                  <div key={cat ?? "unassigned"} className="space-y-1.5">
+                    <div className="flex items-center gap-1.5 px-1">
+                      <span
+                        className="text-[10px] font-bold leading-none"
+                        style={{ color: fg }}
                       >
-                        <button
-                          type="button"
-                          onClick={() => toggleFolder(folder.id)}
-                          aria-expanded={isOpen}
-                          className="flex flex-1 items-center gap-2.5 px-3 py-2.5 text-left cursor-pointer"
-                        >
-                          {isUnassigned ? (
-                            <Inbox className="h-4 w-4 shrink-0 text-muted-foreground" />
-                          ) : (
-                            <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
-                          )}
-                          <span className="flex-1 truncate text-sm font-medium">
-                            {folder.name}
-                          </span>
-                        </button>
-                        {onAddLinkToFolder && (
-                          <button
-                            type="button"
-                            onClick={() => onAddLinkToFolder(folder.id)}
-                            aria-label={`${folder.name}에 링크 추가`}
-                            title="이 폴더에 링크 추가"
-                            className="flex w-8 items-center justify-center text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:text-foreground cursor-pointer"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                        <div className="flex items-center px-0.5">
-                          <KebabMenu
-                            items={folderMenuItems(folder, folderLinks.length)}
-                            label="폴더 메뉴"
-                          />
-                        </div>
-                      </div>
-                    )}
-                    {isOpen && (
-                      <div className="mb-1 mt-0.5 pl-3">
-                        {folderLinks.length === 0 ? (
-                          <p className="px-2 py-1.5 text-[11px] italic text-muted-foreground">
-                            비어있음
-                          </p>
-                        ) : (
-                          <ul className="space-y-0.5">
-                            {folderLinks.map((link) => (
-                              <li key={link.id}>
-                                {editingLinkId === link.id ? (
-                                  <LinkEditForm
-                                    link={link}
-                                    onCancel={() => setEditingLinkId(null)}
-                                    onSave={(patch) => {
-                                      updateLink(link.id, patch);
-                                      setEditingLinkId(null);
-                                    }}
-                                  />
-                                ) : (
-                                  <LinkRow
-                                    title={link.title}
-                                    host={host(link.url)}
-                                    isRead={link.is_read}
-                                    priority={link.priority ?? 0}
-                                    onClick={() => openLink(link)}
-                                    menu={<KebabMenu items={linkMenuItems(link)} label="링크 메뉴" />}
-                                  />
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    )}
-                  </li>
+                        {letter}
+                      </span>
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {label}
+                      </span>
+                    </div>
+                    <ul className="space-y-1.5">
+                      {group.map(renderFolderItem)}
+                    </ul>
+                  </div>
                 );
               })}
+            </div>
+          ) : (
+            <ul className="space-y-1.5">
+              {visibleFolders.map(renderFolderItem)}
             </ul>
           )}
         </div>
